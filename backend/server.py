@@ -115,6 +115,18 @@ def init_db():
         FOREIGN KEY (resume_id) REFERENCES resumes(id)
     )''')
     
+    # Notifications table
+    cursor.execute('''CREATE TABLE IF NOT EXISTS notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        message TEXT NOT NULL,
+        type TEXT DEFAULT 'info',
+        is_read BOOLEAN DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )''')
+    
     conn.commit()
     conn.close()
     print("✅ Database initialized")
@@ -177,6 +189,14 @@ def register():
         try:
             send_welcome_email(email, full_name or 'User')
             print(f"✅ Welcome email sent to {email}")
+            
+            # Create welcome notification
+            create_notification(
+                user_id,
+                'Welcome to JoBika!',
+                'Your account has been successfully created. Start by uploading your resume.',
+                'info'
+            )
         except Exception as e:
             print(f"⚠️  Could not send welcome email: {e}")
         
@@ -621,6 +641,14 @@ def create_application():
                     match_score
                 )
                 print(f"✅ Application confirmation sent to {user_data['email']}")
+                
+            # Create in-app notification
+            create_notification(
+                user_id, 
+                'Application Submitted', 
+                f"Successfully applied to {job['title']} at {job['company']}", 
+                'success'
+            )
         except Exception as e:
             print(f"⚠️  Could not send application confirmation: {e}")
         
@@ -720,6 +748,99 @@ def get_learning_recs():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# ============= NOTIFICATION ENDPOINTS =============
+
+@app.route('/api/notifications', methods=['GET'])
+def get_notifications():
+    """Get user notifications"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        user_id = verify_token(token)
+        
+        if not user_id:
+            return jsonify({'error': 'Unauthorized'}), 401
+            
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT * FROM notifications 
+            WHERE user_id = ? 
+            ORDER BY created_at DESC 
+            LIMIT 50
+        ''', (user_id,))
+        
+        notifications = []
+        for row in cursor.fetchall():
+            notifications.append({
+                'id': row['id'],
+                'title': row['title'],
+                'message': row['message'],
+                'type': row['type'],
+                'isRead': bool(row['is_read']),
+                'createdAt': row['created_at']
+            })
+            
+        conn.close()
+        return jsonify(notifications)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/notifications/mark-read', methods=['POST'])
+def mark_notifications_read():
+    """Mark notifications as read"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        user_id = verify_token(token)
+        
+        if not user_id:
+            return jsonify({'error': 'Unauthorized'}), 401
+            
+        data = request.json
+        notification_ids = data.get('ids', [])
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        if notification_ids:
+            # Mark specific notifications
+            placeholders = ','.join('?' * len(notification_ids))
+            cursor.execute(f'''
+                UPDATE notifications 
+                SET is_read = 1 
+                WHERE user_id = ? AND id IN ({placeholders})
+            ''', [user_id] + notification_ids)
+        else:
+            # Mark all as read
+            cursor.execute('''
+                UPDATE notifications 
+                SET is_read = 1 
+                WHERE user_id = ?
+            ''', (user_id,))
+            
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'message': 'Notifications marked as read'})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def create_notification(user_id, title, message, type='info'):
+    """Helper to create a notification"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO notifications (user_id, title, message, type)
+            VALUES (?, ?, ?, ?)
+        ''', (user_id, title, message, type))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Failed to create notification: {e}")
 
 # ============= UTILITY ENDPOINTS =============
 

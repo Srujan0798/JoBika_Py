@@ -409,8 +409,76 @@ function requireAuth() {
     return true;
 }
 
+// Notification Functions
+async function loadNotifications() {
+    try {
+        const notifications = await apiCall('/notifications');
+        renderNotifications(notifications);
+        return notifications;
+    } catch (error) {
+        console.error('Failed to load notifications:', error);
+    }
+}
+
+function renderNotifications(notifications) {
+    const list = document.getElementById('notification-list');
+    const badge = document.getElementById('notification-badge');
+
+    if (!list || !badge) return;
+
+    const unreadCount = notifications.filter(n => !n.isRead).length;
+
+    // Update badge
+    if (unreadCount > 0) {
+        badge.textContent = unreadCount;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+
+    // Render list
+    if (notifications.length === 0) {
+        list.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">No notifications</div>';
+        return;
+    }
+
+    list.innerHTML = notifications.map(n => `
+        <div class="p-4 border-b border-gray-50 hover:bg-gray-50 ${n.isRead ? 'opacity-60' : 'bg-blue-50'}">
+            <div class="flex justify-between items-start mb-1">
+                <h4 class="text-sm font-semibold text-gray-800">${n.title}</h4>
+                <span class="text-xs text-gray-400">${new Date(n.createdAt).toLocaleDateString()}</span>
+            </div>
+            <p class="text-sm text-gray-600">${n.message}</p>
+        </div>
+    `).join('');
+}
+
+function toggleNotifications() {
+    const dropdown = document.getElementById('notification-dropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+    }
+}
+
+async function markAllRead() {
+    try {
+        await apiCall('/notifications/mark-read', { method: 'POST' });
+        loadNotifications(); // Reload to update UI
+    } catch (error) {
+        console.error('Failed to mark read:', error);
+    }
+}
+
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', initApp);
+document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+
+    // Poll for notifications every minute
+    if (isLoggedIn()) {
+        loadNotifications();
+        setInterval(loadNotifications, 60000);
+    }
+});
 
 // Export for use in other files
 window.JoBikaAPI = {
@@ -426,5 +494,7 @@ window.JoBikaAPI = {
     loadApplications,
     isLoggedIn,
     requireAuth,
-    getState: () => AppState
+    getState: () => AppState,
+    toggleNotifications,
+    markAllRead
 };
