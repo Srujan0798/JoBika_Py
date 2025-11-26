@@ -13,6 +13,14 @@ import json
 from werkzeug.utils import secure_filename
 import re
 
+import pyotp
+import qrcode
+import io
+import base64
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from authlib.integrations.flask_client import OAuth
+
 # Import custom modules
 from resume_parser import (
     parse_pdf, parse_docx, extract_email, extract_phone, extract_name,
@@ -26,12 +34,52 @@ from email_service import (
 )
 from resume_customizer import ResumeCustomizer, SkillGapAnalyzer
 from job_scraper_universal import UniversalJobScraper, AutoApplySystem
+from analytics import get_application_stats, get_market_insights
+from learning_recommendations import get_recommendations_for_gaps, get_learning_resources
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
+# Initialize Rate Limiter
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
+
+# Initialize OAuth
+oauth = OAuth(app)
+
+# Google OAuth
+oauth.register(
+    name='google',
+    client_id=os.environ.get('GOOGLE_CLIENT_ID'),
+    client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
+    access_token_url='https://accounts.google.com/o/oauth2/token',
+    access_token_params=None,
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+    authorize_params=None,
+    api_base_url='https://www.googleapis.com/oauth2/v1/',
+    userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',
+    client_kwargs={'scope': 'openid email profile'},
+)
+
+# LinkedIn OAuth
+oauth.register(
+    name='linkedin',
+    client_id=os.environ.get('LINKEDIN_CLIENT_ID'),
+    client_secret=os.environ.get('LINKEDIN_CLIENT_SECRET'),
+    access_token_url='https://www.linkedin.com/oauth/v2/accessToken',
+    access_token_params=None,
+    authorize_url='https://www.linkedin.com/oauth/v2/authorization',
+    authorize_params=None,
+    api_base_url='https://api.linkedin.com/v2/',
+    client_kwargs={'scope': 'r_liteprofile r_emailaddress'},
+)
+
 # Configuration
-SECRET_KEY = 'your-secret-key-change-in-production'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'pdf', 'docx', 'doc'}
 
@@ -69,6 +117,10 @@ def init_db():
         password_hash TEXT NOT NULL,
         full_name TEXT,
         phone TEXT,
+        two_factor_secret TEXT,
+        is_two_factor_enabled BOOLEAN DEFAULT 0,
+        oauth_provider TEXT,
+        oauth_id TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
     
@@ -113,6 +165,18 @@ def init_db():
         FOREIGN KEY (resume_id) REFERENCES resumes(id)
     )''')
     
+    # Notifications table
+    cursor.execute('''CREATE TABLE IF NOT EXISTS notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        message TEXT NOT NULL,
+        type TEXT DEFAULT 'info',
+        is_read BOOLEAN DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )''')
+    
     conn.commit()
     conn.close()
     print("✅ Database initialized")
@@ -134,6 +198,7 @@ def verify_token(token):
 # ============= AUTHENTICATION ENDPOINTS =============
 
 @app.route('/api/auth/register', methods=['POST'])
+@limiter.limit("5 per minute")
 def register():
     """Register new user"""
     try:
@@ -175,6 +240,14 @@ def register():
         try:
             send_welcome_email(email, full_name or 'User')
             print(f"✅ Welcome email sent to {email}")
+            
+            # Create welcome notification
+            create_notification(
+                user_id,
+                'Welcome to JoBika!',
+                'Your account has been successfully created. Start by uploading your resume.',
+                'info'
+            )
         except Exception as e:
             print(f"⚠️  Could not send welcome email: {e}")
         
@@ -194,6 +267,7 @@ def register():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/auth/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def login():
     """Login user"""
     try:
@@ -219,6 +293,21 @@ def login():
         
         if not user:
             return jsonify({'error': 'Invalid credentials'}), 401
+            
+        # Check if 2FA is enabled
+        if user['is_two_factor_enabled']:
+            # If 2FA code is provided, verify it
+            code = data.get('twoFactorCode')
+            if code:
+                totp = pyotp.TOTP(user['two_factor_secret'])
+                if not totp.verify(code):
+                    return jsonify({'error': 'Invalid 2FA code'}), 401
+            else:
+                # Return 2FA required response
+                return jsonify({
+                    'require2fa': True,
+                    'email': email
+                }), 200
         
         # Generate JWT token
         token = jwt.encode({
@@ -233,9 +322,83 @@ def login():
                 'id': user['id'],
                 'email': user['email'],
                 'fullName': user['full_name'],
-                'phone': user['phone']
+                'phone': user['phone'],
+                'isTwoFactorEnabled': bool(user['is_two_factor_enabled'])
             }
         })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/auth/<provider>')
+def oauth_login(provider):
+    """Initiate OAuth login"""
+    client = oauth.create_client(provider)
+    redirect_uri = url_for('oauth_callback', provider=provider, _external=True)
+    return client.authorize_redirect(redirect_uri)
+
+@app.route('/api/auth/<provider>/callback')
+def oauth_callback(provider):
+    """Handle OAuth callback"""
+    try:
+        client = oauth.create_client(provider)
+        token = client.authorize_access_token()
+        
+        if provider == 'google':
+            user_info = client.userinfo()
+            email = user_info['email']
+            name = user_info['name']
+            oauth_id = user_info['sub']
+        elif provider == 'linkedin':
+            resp = client.get('me')
+            profile = resp.json()
+            oauth_id = profile['id']
+            name = f"{profile['localizedFirstName']} {profile['localizedLastName']}"
+            
+            email_resp = client.get('emailAddress?q=members&projection=(elements*(handle~))')
+            email = email_resp.json()['elements'][0]['handle~']['emailAddress']
+            
+        # Check if user exists
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            # Create new user
+            cursor.execute('''
+                INSERT INTO users (email, password_hash, full_name, oauth_provider, oauth_id)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (email, 'oauth_user', name, provider, oauth_id))
+            conn.commit()
+            user_id = cursor.lastrowid
+            
+            # Send welcome email
+            try:
+                send_welcome_email(email, name)
+            except:
+                pass
+                
+            user = {'id': user_id, 'email': email, 'full_name': name, 'is_two_factor_enabled': 0}
+        else:
+            # Update OAuth info if missing
+            if not user['oauth_id']:
+                cursor.execute('''
+                    UPDATE users SET oauth_provider = ?, oauth_id = ?
+                    WHERE id = ?
+                ''', (provider, oauth_id, user['id']))
+                conn.commit()
+        
+        # Generate JWT
+        token = jwt.encode({
+            'user_id': user['id'],
+            'email': email,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7)
+        }, SECRET_KEY, algorithm='HS256')
+        
+        # Redirect to frontend with token
+        return redirect(f'http://localhost:5500/app/upload.html?token={token}&user={json.dumps(user)}')
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -565,20 +728,6 @@ def create_application():
     """Create job application"""
     try:
         token = request.headers.get('Authorization', '').replace('Bearer ', '')
-        user_id = verify_token(token)
-        
-        if not user_id:
-            return jsonify({'error': 'Unauthorized'}), 401
-        
-        data = request.json
-        job_id = data.get('jobId')
-        resume_version_id = data.get('resumeVersionId')
-        
-        conn = get_db()
-        cursor = conn.cursor()
-        
-        # Get job and resume
-        cursor.execute('SELECT * FROM jobs WHERE id = ?', (job_id,))
         job = cursor.fetchone()
         
         cursor.execute('''
@@ -619,6 +768,14 @@ def create_application():
                     match_score
                 )
                 print(f"✅ Application confirmation sent to {user_data['email']}")
+                
+            # Create in-app notification
+            create_notification(
+                user_id, 
+                'Application Submitted', 
+                f"Successfully applied to {job['title']} at {job['company']}", 
+                'success'
+            )
         except Exception as e:
             print(f"⚠️  Could not send application confirmation: {e}")
         
@@ -673,6 +830,248 @@ def get_applications():
             })
         
         return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ============= ANALYTICS & LEARNING ENDPOINTS =============
+
+@app.route('/api/analytics', methods=['GET'])
+def get_analytics():
+    """Get user analytics and market insights"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        user_id = verify_token(token)
+        
+        if not user_id:
+            return jsonify({'error': 'Unauthorized'}), 401
+            
+        # Get user stats
+        user_stats = get_application_stats(user_id)
+        
+        # Get market insights
+        market_insights = get_market_insights()
+        
+        return jsonify({
+            'userStats': user_stats,
+            'marketInsights': market_insights
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/learning/recommendations', methods=['GET'])
+def get_learning_recs():
+    """Get learning recommendations for skills"""
+    try:
+        skills = request.args.get('skills', '').split(',')
+        skills = [s.strip() for s in skills if s.strip()]
+        
+        if not skills:
+            return jsonify([])
+            
+        recommendations = get_recommendations_for_gaps(skills)
+        return jsonify(recommendations)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ============= NOTIFICATION ENDPOINTS =============
+
+@app.route('/api/notifications', methods=['GET'])
+def get_notifications():
+    """Get user notifications"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        user_id = verify_token(token)
+        
+        if not user_id:
+            return jsonify({'error': 'Unauthorized'}), 401
+            
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT * FROM notifications 
+            WHERE user_id = ? 
+            ORDER BY created_at DESC 
+            LIMIT 50
+        ''', (user_id,))
+        
+        notifications = []
+        for row in cursor.fetchall():
+            notifications.append({
+                'id': row['id'],
+                'title': row['title'],
+                'message': row['message'],
+                'type': row['type'],
+                'isRead': bool(row['is_read']),
+                'createdAt': row['created_at']
+            })
+            
+        conn.close()
+        return jsonify(notifications)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/notifications/mark-read', methods=['POST'])
+def mark_notifications_read():
+    """Mark notifications as read"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        user_id = verify_token(token)
+        
+        if not user_id:
+            return jsonify({'error': 'Unauthorized'}), 401
+            
+        data = request.json
+        notification_ids = data.get('ids', [])
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        if notification_ids:
+            # Mark specific notifications
+            placeholders = ','.join('?' * len(notification_ids))
+            cursor.execute(f'''
+                UPDATE notifications 
+                SET is_read = 1 
+                WHERE user_id = ? AND id IN ({placeholders})
+            ''', [user_id] + notification_ids)
+        else:
+            # Mark all as read
+            cursor.execute('''
+                UPDATE notifications 
+                SET is_read = 1 
+                WHERE user_id = ?
+            ''', (user_id,))
+            
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'message': 'Notifications marked as read'})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def create_notification(user_id, title, message, type='info'):
+    """Helper to create a notification"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO notifications (user_id, title, message, type)
+            VALUES (?, ?, ?, ?)
+        ''', (user_id, title, message, type))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Failed to create notification: {e}")
+
+    except Exception as e:
+        print(f"Failed to create notification: {e}")
+
+# ============= SECURITY (2FA) ENDPOINTS =============
+
+@app.route('/api/auth/2fa/setup', methods=['POST'])
+def setup_2fa():
+    """Generate 2FA secret and QR code"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        user_id = verify_token(token)
+        
+        if not user_id:
+            return jsonify({'error': 'Unauthorized'}), 401
+            
+        # Generate secret
+        secret = pyotp.random_base32()
+        
+        # Generate QR code
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT email FROM users WHERE id = ?', (user_id,))
+        user = cursor.fetchone()
+        conn.close()
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+            
+        totp = pyotp.TOTP(secret)
+        provisioning_uri = totp.provisioning_uri(name=user['email'], issuer_name="JoBika")
+        
+        # Create QR code image
+        img = qrcode.make(provisioning_uri)
+        buffered = io.BytesIO()
+        img.save(buffered, format="PNG")
+        qr_code_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        
+        return jsonify({
+            'secret': secret,
+            'qrCode': f"data:image/png;base64,{qr_code_base64}"
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/auth/2fa/verify', methods=['POST'])
+def verify_2fa():
+    """Verify 2FA code and enable it"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        user_id = verify_token(token)
+        
+        if not user_id:
+            return jsonify({'error': 'Unauthorized'}), 401
+            
+        data = request.json
+        secret = data.get('secret')
+        code = data.get('code')
+        
+        if not secret or not code:
+            return jsonify({'error': 'Secret and code required'}), 400
+            
+        totp = pyotp.TOTP(secret)
+        if totp.verify(code):
+            # Enable 2FA for user
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE users 
+                SET two_factor_secret = ?, is_two_factor_enabled = 1 
+                WHERE id = ?
+            ''', (secret, user_id))
+            conn.commit()
+            conn.close()
+            
+            return jsonify({'message': '2FA enabled successfully'})
+        else:
+            return jsonify({'error': 'Invalid code'}), 400
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/auth/2fa/disable', methods=['POST'])
+def disable_2fa():
+    """Disable 2FA"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        user_id = verify_token(token)
+        
+        if not user_id:
+            return jsonify({'error': 'Unauthorized'}), 401
+            
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE users 
+            SET two_factor_secret = NULL, is_two_factor_enabled = 0 
+            WHERE id = ?
+        ''', (user_id,))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'message': '2FA disabled successfully'})
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500

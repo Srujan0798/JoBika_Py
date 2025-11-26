@@ -55,6 +55,7 @@ function initApp() {
     if (AppState.token) {
         loadJobs();
         loadApplications();
+        loadAnalytics();
     }
 }
 
@@ -79,12 +80,22 @@ async function register(email, password, fullName) {
     }
 }
 
-async function login(email, password) {
+async function login(email, password, twoFactorCode = null) {
     try {
+        const body = { email, password };
+        if (twoFactorCode) {
+            body.twoFactorCode = twoFactorCode;
+        }
+
         const data = await apiCall('/auth/login', {
             method: 'POST',
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify(body)
         });
+
+        // Handle 2FA challenge
+        if (data.require2fa) {
+            return { require2fa: true };
+        }
 
         AppState.token = data.token;
         AppState.user = data.user;
@@ -213,6 +224,78 @@ async function loadApplications() {
     }
 }
 
+async function loadAnalytics() {
+    try {
+        const data = await apiCall('/analytics');
+        renderAnalytics(data);
+        return data;
+    } catch (error) {
+        console.error('Failed to load analytics:', error);
+        // Fallback UI
+        document.getElementById('analytics-chart').innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400">No data available</div>';
+        document.getElementById('market-insights').innerHTML = '<div class="w-full text-center text-gray-400">No insights available</div>';
+    }
+}
+
+function renderAnalytics(data) {
+    // Render User Stats
+    if (data.userStats) {
+        document.getElementById('total-applications').textContent = data.userStats.total || 0;
+
+        // Calculate response rate (interviews / applications)
+        const interviews = data.userStats.breakdown?.interview || 0;
+        const offers = data.userStats.breakdown?.offer || 0;
+        const total = data.userStats.total || 1;
+        const rate = Math.round(((interviews + offers) / total) * 100);
+
+        document.getElementById('total-interviews').textContent = interviews;
+        document.getElementById('total-offers').textContent = offers;
+        document.getElementById('response-rate').textContent = `${rate}%`;
+
+        // Render Chart (Simple CSS Bars)
+        const chartContainer = document.getElementById('analytics-chart');
+        if (data.userStats.timeline && data.userStats.timeline.counts.length > 0) {
+            const maxCount = Math.max(...data.userStats.timeline.counts, 1);
+
+            chartContainer.innerHTML = data.userStats.timeline.counts.map((count, index) => {
+                const height = (count / maxCount) * 100;
+                const date = new Date(data.userStats.timeline.dates[index]).toLocaleDateString('en-US', { weekday: 'short' });
+                return `
+                    <div class="flex flex-col items-center flex-1 group">
+                        <div class="w-full bg-blue-100 rounded-t-sm relative hover:bg-blue-200 transition-all" style="height: ${height}%">
+                            <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                ${count} apps
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-2">${date}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    // Render Market Insights
+    if (data.marketInsights && data.marketInsights.top_skills) {
+        const insightsContainer = document.getElementById('market-insights');
+        const maxCount = Math.max(...data.marketInsights.top_skills.map(s => s.count), 1);
+
+        insightsContainer.innerHTML = data.marketInsights.top_skills.map(skill => {
+            const width = (skill.count / maxCount) * 100;
+            return `
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="font-medium text-gray-700">${skill.name}</span>
+                        <span class="text-gray-500">${skill.count} jobs</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: ${width}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
 // Fallback Mock Data (for when backend is not running)
 function loadMockJobs() {
     AppState.jobs = [
@@ -336,8 +419,76 @@ function requireAuth() {
     return true;
 }
 
+// Notification Functions
+async function loadNotifications() {
+    try {
+        const notifications = await apiCall('/notifications');
+        renderNotifications(notifications);
+        return notifications;
+    } catch (error) {
+        console.error('Failed to load notifications:', error);
+    }
+}
+
+function renderNotifications(notifications) {
+    const list = document.getElementById('notification-list');
+    const badge = document.getElementById('notification-badge');
+
+    if (!list || !badge) return;
+
+    const unreadCount = notifications.filter(n => !n.isRead).length;
+
+    // Update badge
+    if (unreadCount > 0) {
+        badge.textContent = unreadCount;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+
+    // Render list
+    if (notifications.length === 0) {
+        list.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">No notifications</div>';
+        return;
+    }
+
+    list.innerHTML = notifications.map(n => `
+        <div class="p-4 border-b border-gray-50 hover:bg-gray-50 ${n.isRead ? 'opacity-60' : 'bg-blue-50'}">
+            <div class="flex justify-between items-start mb-1">
+                <h4 class="text-sm font-semibold text-gray-800">${n.title}</h4>
+                <span class="text-xs text-gray-400">${new Date(n.createdAt).toLocaleDateString()}</span>
+            </div>
+            <p class="text-sm text-gray-600">${n.message}</p>
+        </div>
+    `).join('');
+}
+
+function toggleNotifications() {
+    const dropdown = document.getElementById('notification-dropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+    }
+}
+
+async function markAllRead() {
+    try {
+        await apiCall('/notifications/mark-read', { method: 'POST' });
+        loadNotifications(); // Reload to update UI
+    } catch (error) {
+        console.error('Failed to mark read:', error);
+    }
+}
+
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', initApp);
+document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+
+    // Poll for notifications every minute
+    if (isLoggedIn()) {
+        loadNotifications();
+        setInterval(loadNotifications, 60000);
+    }
+});
 
 // Export for use in other files
 window.JoBikaAPI = {
@@ -353,5 +504,7 @@ window.JoBikaAPI = {
     loadApplications,
     isLoggedIn,
     requireAuth,
-    getState: () => AppState
+    getState: () => AppState,
+    toggleNotifications,
+    markAllRead
 };
