@@ -8,11 +8,14 @@ Transform your job search with AI-powered resume customization, automated applic
 ## ⭐ Quick Links
 
 - 📚 [Complete Feature List](docs/FEATURES.md)
-- 🚀 [Quick Start Guide](INSTALL.md)
+- 🚀 [Quick Start Guide](docs/INSTALL.md)
 - 📖 [API Documentation](http://localhost:5000/api/docs/) (when running)
 - 🛠️ [Troubleshooting](docs/TROUBLESHOOTING.md)
 - 🔒 [Security Guide](docs/SECURITY.md)
-- 🎯 [Achievement Summary](ACHIEVEMENTS.md)
+- 🎯 [Achievement Summary](docs/ACHIEVEMENTS.md)
+- 🚢 [Deployment Guide](docs/DEPLOYMENT.md)
+- 💡 [Quick Reference](docs/QUICKREF.md)
+- 🤝 [Contributing](docs/CONTRIBUTING.md)
 
 ## 🆕 Latest Features
 
