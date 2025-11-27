@@ -9,7 +9,8 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        sync: false  # Set this to your Supabase connection string
+        value: postgresql://postgres:23110081%40iiTgn@db.eabkwiklxjbqbfxcdlkk.supabase.co:5432/postgres
+        sync: false
       - key: GEMINI_API_KEY
         sync: false
       - key: GMAIL_USER
