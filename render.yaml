@@ -9,7 +9,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        value: postgresql://postgres:23110081%40iiTgn@db.eabkwiklxjbqbfxcdlkk.supabase.co:5432/postgres
+        value: postgresql://postgres:23110081aiiTGn@db.eabkwiklxjbqbfxcdlkk.supabase.co:5432/postgres
         sync: false
       - key: GEMINI_API_KEY
         sync: false
