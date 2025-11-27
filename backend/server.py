@@ -12,6 +12,9 @@ import os
 import json
 from werkzeug.utils import secure_filename
 import re
+import sys
+
+print("🚀 Server module loading...")
 
 import pyotp
 import qrcode
@@ -345,6 +348,17 @@ def verify_token(token):
         return payload['user_id']
     except:
         return None
+
+@app.route('/health')
+def health_check():
+    """Simple health check endpoint"""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.datetime.now().isoformat(),
+        'static_folder': static_folder_path,
+        'static_folder_exists': os.path.exists(static_folder_path),
+        'python_version': sys.version
+    }), 200
 
 # Routes to serve frontend app files
 @app.route('/')
