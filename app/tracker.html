@@ -276,16 +276,214 @@
             });
         }
 
+        ```
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .column-title {
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        .column-count {
+            background: var(--gray-100);
+            color: var(--gray-700);
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .application-card {
+            background: var(--gray-50);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            border: 1px solid transparent;
+        }
+
+        .application-card:hover {
+            border-color: var(--primary-blue);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .app-company {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .app-position {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
+        }
+
+        .app-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 0.75rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.25rem;
+        }
+
+        .status-applied .status-dot {
+            background: var(--primary-blue);
+        }
+
+        .status-under_review .status-dot {
+            background: var(--warning);
+        }
+
+        .status-interview .status-dot {
+            background: var(--primary-purple);
+        }
+
+        .status-offer .status-dot {
+            background: var(--success);
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="logo">JoBika</div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="dashboard.html" class="nav-link">
+                    <span>📊</span>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="jobs.html" class="nav-link">
+                    <span>🔍</span>
+                    <span>Find Jobs</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="editor.html" class="nav-link">
+                    <span>📝</span>
+                    <span>Resume Editor</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="tracker.html" class="nav-link active">
+                    <span>📋</span>
+                    <span>Applications</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <span>⚙️</span>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <div>
+                <h1 style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 0.5rem;">My Applications
+                </h1>
+                <p style="color: var(--gray-600);">Track all your job applications in one place</p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-secondary">Filter</button>
+                <button class="btn btn-primary" onclick="window.location.href='jobs.html'">Apply to More Jobs</button>
+            </div>
+        </div>
+
+        <div class="kanban-board">
+            <div class="kanban-column">
+                <div class="column-header">
+                    <span class="column-title">Applied</span>
+                    <span class="column-count" id="count-applied">0</span>
+                </div>
+                <div id="column-applied"></div>
+            </div>
+
+            <div class="kanban-column">
+                <div class="column-header">
+                    <span class="column-title">Under Review</span>
+                    <span class="column-count" id="count-under_review">0</span>
+                </div>
+                <div id="column-under_review"></div>
+            </div>
+
+            <div class="kanban-column">
+                <div class="column-header">
+                    <span class="column-title">Interview</span>
+                    <span class="column-count" id="count-interview">0</span>
+                </div>
+                <div id="column-interview"></div>
+            </div>
+
+            <div class="kanban-column">
+                <div class="column-header">
+                    <span class="column-title">Offer</span>
+                    <span class="column-count" id="count-offer">0</span>
+                </div>
+                <div id="column-offer"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        function renderApplications() {
+            const statuses = ['applied', 'under_review', 'interview', 'offer'];
+
+            statuses.forEach(status => {
+                const apps = AppState.applications.filter(app => app.status === status);
+                const column = document.getElementById(`column - ${ status } `);
+                const count = document.getElementById(`count - ${ status } `);
+
+                count.textContent = apps.length;
+
+                column.innerHTML = apps.map(app => `
+            < div class="application-card status-${app.status}" onclick = "viewApplication(${app.id})" >
+                        <div class="app-company">${app.company}</div>
+                        <div class="app-position">${app.position}</div>
+                        <div class="match-score ${getMatchScoreClass(app.matchScore)}">${app.matchScore}% Match</div>
+                        <div class="app-meta">
+                            <span><span class="status-dot"></span>${formatDate(app.appliedDate)}</span>
+                        </div>
+                    </div >
+            `).join('');
+            });
+        }
+
         function viewApplication(appId) {
             const app = AppState.applications.find(a => a.id === appId);
-            alert(`Application Details:\n\n${app.position}\n${app.company}\n\nStatus: ${app.status.replace('_', ' ').toUpperCase()}\nApplied: ${formatDate(app.appliedDate)}\nMatch Score: ${app.matchScore}%\n\nThis would show full application details, timeline, and next steps.`);
+            alert(`Application Details: \n\n${ app.position } \n${ app.company } \n\nStatus: ${ app.status.replace('_', ' ').toUpperCase() } \nApplied: ${ formatDate(app.appliedDate) } \nMatch Score: ${ app.matchScore }%\n\nThis would show full application details, timeline, and next steps.`);
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            window.JoBikaAPI.requireAuth();
+            await window.JoBikaAPI.loadApplications();
             renderApplications();
         });
     </script>
 </body>
 
 </html>
+```

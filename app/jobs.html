@@ -284,19 +284,216 @@
                 <option>Sort by: Salary (High to Low)</option>
             </select>
         </div>
+        }
 
-        <div class="jobs-grid" id="jobsGrid"></div>
-    </main>
+        .filter-group {
+        margin-bottom: 1.5rem;
+        }
 
-    <script src="assets/js/app.js"></script>
-    <script>
-        function renderJobs() {
-            const jobsGrid = document.getElementById('jobsGrid');
-            const jobCount = document.getElementById('jobCount');
+        .filter-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        }
 
-            jobCount.textContent = AppState.jobs.length;
+        .jobs-grid {
+        display: grid;
+        gap: 1.5rem;
+        }
 
-            jobsGrid.innerHTML = AppState.jobs.map(job => `
+        .job-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all var(--transition-base);
+        cursor: pointer;
+        }
+
+        .job-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+        }
+
+        .job-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1rem;
+        }
+
+        .company-logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 0.75rem;
+        background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: white;
+        font-size: 1.25rem;
+        }
+
+        .job-info {
+        flex: 1;
+        margin-left: 1rem;
+        }
+
+        .job-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin-bottom: 0.25rem;
+        }
+
+        .job-company {
+        color: var(--gray-600);
+        font-size: 0.875rem;
+        }
+
+        .job-meta {
+        display: flex;
+        gap: 1.5rem;
+        margin: 1rem 0;
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        }
+
+        .skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 1rem 0;
+        }
+
+        .skill-tag {
+        padding: 0.25rem 0.75rem;
+        background: var(--gray-100);
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        color: var(--gray-700);
+        }
+        </style>
+        </head>
+
+        <body>
+            <aside class="sidebar">
+                <div class="logo">JoBika</div>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="dashboard.html" class="nav-link">
+                            <span>📊</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="jobs.html" class="nav-link active">
+                            <span>🔍</span>
+                            <span>Find Jobs</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="editor.html" class="nav-link">
+                            <span>📝</span>
+                            <span>Resume Editor</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="tracker.html" class="nav-link">
+                            <span>📋</span>
+                            <span>Applications</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span>⚙️</span>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </aside>
+
+            <main class="main-content">
+                <h1 style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 2rem;">Find Your Dream Job
+                </h1>
+
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="🔍 Search by job title, company, or skills..."
+                        id="searchInput">
+                </div>
+
+                <div class="filters">
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                        <div class="filter-group">
+                            <label class="filter-label">Location</label>
+                            <select class="input">
+                                <option>All Locations</option>
+                                <option>Bangalore</option>
+                                <option>Hyderabad</option>
+                                <option>Mumbai</option>
+                                <option>Pune</option>
+                                <option>Delhi/NCR</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label class="filter-label">Experience</label>
+                            <select class="input">
+                                <option>All Levels</option>
+                                <option>0-2 years</option>
+                                <option>2-5 years</option>
+                                <option>5-10 years</option>
+                                <option>10+ years</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label class="filter-label">Job Type</label>
+                            <select class="input">
+                                <option>All Types</option>
+                                <option>Full-time</option>
+                                <option>Part-time</option>
+                                <option>Contract</option>
+                                <option>Remote</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label class="filter-label">Min Match Score</label>
+                            <select class="input">
+                                <option>All Jobs</option>
+                                <option>90%+</option>
+                                <option>80%+</option>
+                                <option>70%+</option>
+                                <option>60%+</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <p style="color: var(--gray-600);"><span id="jobCount">0</span> jobs found</p>
+                    <select class="input" style="width: auto;">
+                        <option>Sort by: Best Match</option>
+                        <option>Sort by: Most Recent</option>
+                        <option>Sort by: Salary (High to Low)</option>
+                    </select>
+                </div>
+
+                <div class="jobs-grid" id="jobsGrid"></div>
+            </main>
+
+            <script src="assets/js/app.js"></script>
+            <script>
+                function renderJobs() {
+                    const jobsGrid = document.getElementById('jobsGrid');
+                    const jobCount = document.getElementById('jobCount');
+
+                    jobCount.textContent = AppState.jobs.length;
+
+                    jobsGrid.innerHTML = AppState.jobs.map(job => `
                 <div class="job-card" onclick="viewJobDetails(${job.id})">
                     <div class="job-header">
                         <div class="company-logo">${job.company.charAt(0)}</div>
@@ -323,37 +520,35 @@
                     </div>
                 </div>
             `).join('');
-        }
+                }
 
-        function viewJobDetails(jobId) {
-            const job = AppState.jobs.find(j => j.id === jobId);
-            alert(`Job Details:\n\n${job.title}\n${job.company}\n\nMatch Score: ${job.matchScore}%\n\nThis would open a detailed view with full job description, requirements, and company info.`);
-        }
+                function viewJobDetails(jobId) {
+                    const job = AppState.jobs.find(j => j.id === jobId);
+                    alert(`Job Details:\n\n${job.title}\n${job.company}\n\nMatch Score: ${job.matchScore}%\n\nThis would open a detailed view with full job description, requirements, and company info.`);
+                }
 
-        function quickApply(jobId) {
-            const job = AppState.jobs.find(j => j.id === jobId);
-            if (confirm(`Apply to ${job.title} at ${job.company}?\n\nAI will customize your resume and submit the application.`)) {
-                alert('Application submitted successfully! ✅\n\nYou can track it in the Applications tab.');
-                window.location.href = 'tracker.html';
-            }
-        }
+                async function quickApply(jobId) {
+                    const btn = event.target;
+                    const originalText = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = 'Applying...';
 
-        function saveJob(jobId) {
-            alert('Job saved! You can find it in your saved jobs.');
-        }
+                    try {
+                        await window.JoBikaAPI.createApplication(jobId);
+                        btn.textContent = 'Applied ✅';
+                        btn.classList.remove('btn-primary');
+                        btn.classList.add('btn-success');
+                        alert('Application submitted successfully! Our AI has customized your resume for this role.');
+                    } catch (error) {
+                        console.error('Application failed:', error);
+                        alert('Failed to apply: ' + error.message);
+                    });
 
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            // In a real app, this would filter the jobs
-            console.log('Searching for:', query);
-        });
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            renderJobs();
-        });
-    </script>
-</body>
+                    // Initialize
+                    document.addEventListener('DOMContentLoaded', () => {
+                        renderJobs();
+                    });
+            </script>
+        </body>
 
 </html>

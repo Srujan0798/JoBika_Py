@@ -500,11 +500,75 @@ window.JoBikaAPI = {
     loadJobs,
     getJob,
     searchJobs,
+    saveJob,
+    getSavedJobs,
+    removeSavedJob,
     createApplication,
     loadApplications,
+    updateResume,
+    enhanceResumeSection,
     isLoggedIn,
     requireAuth,
     getState: () => AppState,
     toggleNotifications,
     markAllRead
 };
+
+// Additional functions for saved jobs
+async function getSavedJobs() {
+    try {
+        const jobs = await apiCall('/jobs/saved');
+        AppState.savedJobs = jobs;
+        localStorage.setItem('jobika_saved_jobs', JSON.stringify(jobs));
+        return jobs;
+    } catch (error) {
+        console.error('Failed to get saved jobs:', error);
+        return [];
+    }
+}
+
+async function removeSavedJob(jobId) {
+    try {
+        await apiCall(`/jobs/saved/${jobId}`, {
+            method: 'DELETE'
+        });
+        // Update local state
+        if (AppState.savedJobs) {
+            AppState.savedJobs = AppState.savedJobs.filter(j => j.id !== jobId);
+            localStorage.setItem('jobika_saved_jobs', JSON.stringify(AppState.savedJobs));
+        }
+        return true;
+    } catch (error) {
+        console.error('Failed to remove saved job:', error);
+        throw error;
+    }
+}
+
+// Resume enhancement functions
+async function updateResume(data) {
+    try {
+        return await apiCall('/resume/update', {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    } catch (error) {
+        console.error('Failed to update resume:', error);
+        throw error;
+    }
+}
+
+async function enhanceResumeSection(text, sectionType) {
+    try {
+        return await apiCall('/resume/enhance-section', {
+            method: 'POST',
+            body: JSON.stringify({ text, sectionType })
+        });
+    } catch (error) {
+        console.error('Failed to enhance section:', error);
+        throw error;
+    }
+}
+
+// Update AppState to include savedJobs
+AppState.savedJobs = [];
+

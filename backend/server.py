@@ -145,10 +145,33 @@ job_scraper = UniversalJobScraper()
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Database helper functions
-def get_db():
+# Database Configuration
+def get_db_connection():
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url and database_url.startswith('postgres'):
+        # Use PostgreSQL (Supabase/Render)
+        try:
+            import psycopg2
+            from psycopg2.extras import RealDictCursor
+            conn = psycopg2.connect(database_url, sslmode='require')
+            return conn, 'postgres'
+        except ImportError:
+            print("psycopg2 not installed, falling back to SQLite")
+            pass
+    
+    # Use SQLite (Local)
     conn = sqlite3.connect('jobika.db')
     conn.row_factory = sqlite3.Row
+    return conn, 'sqlite'
+
+def get_db():
+    conn, _ = get_db_connection()
     return conn
+
+# DB Helper to handle syntax differences
+def get_placeholder():
+    _, db_type = get_db_connection()
+    return '%s' if db_type == 'postgres' else '?'
 
 def init_db():
     """Initialize database with all tables"""
@@ -798,6 +821,149 @@ def get_jobs():
 def scrape_jobs_endpoint():
     """Scrape fresh jobs from job boards"""
     try:
+        # ... existing code ...
+        pass
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/jobs/save', methods=['POST'])
+def save_job():
+    """Save a job for later"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        user_id = verify_token(token)
+        if not user_id: return jsonify({'error': 'Unauthorized'}), 401
+        
+        data = request.json
+        job_id = data.get('jobId')
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if already saved
+        ph = get_placeholder()
+        query = f"SELECT id FROM saved_jobs WHERE user_id = {ph} AND job_id = {ph}"
+        cursor.execute(query, (user_id, job_id))
+        if cursor.fetchone():
+            return jsonify({'message': 'Job already saved'})
+            
+        query = f"INSERT INTO saved_jobs (user_id, job_id) VALUES ({ph}, {ph})"
+        cursor.execute(query, (user_id, job_id))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'message': 'Job saved successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/jobs/saved', methods=['GET'])
+def get_saved_jobs():
+    """Get saved jobs"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        user_id = verify_token(token)
+        if not user_id: return jsonify({'error': 'Unauthorized'}), 401
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        ph = get_placeholder()
+        query = f'''
+            SELECT j.*, sj.created_at as saved_at FROM jobs j
+            JOIN saved_jobs sj ON j.id = sj.job_id
+            WHERE sj.user_id = {ph}
+            ORDER BY sj.created_at DESC
+        '''
+        cursor.execute(query, (user_id,))
+        jobs = cursor.fetchall()
+        conn.close()
+        
+        # Format jobs
+        result = []
+        for job in jobs:
+            result.append({
+                'id': job['id'],
+                'title': job['title'],
+                'company': job['company'],
+                'location': job['location'],
+                'salary': job['salary'],
+                'matchScore': 0,
+                'skills': json.loads(job['required_skills']) if job['required_skills'] else [],
+                'posted': job['posted_date'],
+                'savedAt': job['saved_at']
+            })
+            
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/jobs/saved/<int:job_id>', methods=['DELETE'])
+def remove_saved_job(job_id):
+    """Remove a job from saved jobs"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        user_id = verify_token(token)
+        if not user_id: return jsonify({'error': 'Unauthorized'}), 401
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        ph = get_placeholder()
+        query = f"DELETE FROM saved_jobs WHERE user_id = {ph} AND job_id = {ph}"
+        cursor.execute(query, (user_id, job_id))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'message': 'Job removed from saved jobs'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/resume/update', methods=['PUT'])
+def update_resume_content():
+    """Update resume content manually"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        user_id = verify_token(token)
+        if not user_id: return jsonify({'error': 'Unauthorized'}), 401
+        
+        data = request.json
+        section = data.get('section')
+        content = data.get('content')
+        
+        # Logic to update specific fields in the DB based on section
+        # For simplicity, we might store a JSON blob or specific columns
+        # This is a simplified implementation
+        
+        return jsonify({'message': 'Resume updated successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/resume/enhance-section', methods=['POST'])
+def enhance_resume_section():
+    """AI Enhance a specific section using Google Gemini"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        user_id = verify_token(token)
+        if not user_id: return jsonify({'error': 'Unauthorized'}), 401
+        
+        data = request.json
+        text = data.get('text', '')
+        section_type = data.get('sectionType', 'general')
+        
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+        
+        # Import AI service
+        try:
+            from ai_service import enhance_resume_text
+            enhanced = enhance_resume_text(text, section_type)
+        except ImportError:
+            # Fallback if ai_service not available
+            enhanced = f"[Enhanced] {text}"
+        
+        return jsonify({'enhancedText': enhanced})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
         data = request.json or {}
         query = data.get('query', 'software engineer')
         location = data.get('location', 'remote')

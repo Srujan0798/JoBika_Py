@@ -335,18 +335,226 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </main>
 
-    <script src="assets/js/app.js"></script>
-    <script>
-        // Render recommended jobs
-        function renderJobs() {
-            const jobsList = document.getElementById('jobsList');
-            const topJobs = AppState.jobs.slice(0, 3);
+                .job-card {
+                background: white;
+                border-radius: 1rem;
+                padding: 1.5rem;
+                margin-bottom: 1rem;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                transition: all var(--transition-base);
+                }
 
-            jobsList.innerHTML = topJobs.map(job => `
+                .job-card:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                transform: translateY(-2px);
+                }
+
+                .job-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: start;
+                margin-bottom: 1rem;
+                }
+
+                .company-logo {
+                width: 48px;
+                height: 48px;
+                border-radius: 0.5rem;
+                background: var(--gray-100);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                color: var(--gray-600);
+                }
+
+                .job-info {
+                flex: 1;
+                margin-left: 1rem;
+                }
+
+                .job-title {
+                font-size: 1.125rem;
+                font-weight: 600;
+                color: var(--gray-900);
+                margin-bottom: 0.25rem;
+                }
+
+                .job-company {
+                color: var(--gray-600);
+                font-size: 0.875rem;
+                }
+
+                .job-meta {
+                display: flex;
+                gap: 1.5rem;
+                margin-top: 1rem;
+                font-size: 0.875rem;
+                color: var(--gray-600);
+                }
+
+                .job-meta span {
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+                }
+
+                .skills {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                margin-top: 1rem;
+                }
+
+                .skill-tag {
+                padding: 0.25rem 0.75rem;
+                background: var(--gray-100);
+                border-radius: 9999px;
+                font-size: 0.75rem;
+                color: var(--gray-700);
+                }
+                </style>
+                </head>
+
+                <body>
+                    <aside class="sidebar">
+                        <div class="logo">JoBika</div>
+                        <ul class="nav-menu">
+                            <li class="nav-item">
+                                <a href="dashboard.html" class="nav-link active">
+                                    <span>📊</span>
+                                    <span>Dashboard</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="jobs.html" class="nav-link">
+                                    <span>🔍</span>
+                                    <span>Find Jobs</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="editor.html" class="nav-link">
+                                    <span>📝</span>
+                                    <span>Resume Editor</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="tracker.html" class="nav-link">
+                                    <span>📋</span>
+                                    <span>Applications</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <span>⚙️</span>
+                                    <span>Settings</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" style="margin-top: 2rem;">
+                                <a href="#" class="nav-link" onclick="logout()">
+                                    <span>🚪</span>
+                                    <span>Logout</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </aside>
+
+                    <main class="main-content">
+                        <div class="header">
+                            <div>
+                                <div class="stat-value">142</div>
+                                <div class="stat-label">Total Applications</div>
+                                <div class="stat-header">
+                                    <div>
+                                        <div class="stat-value">2</div>
+                                        <div class="stat-label">Offers Received</div>
+                                    </div>
+                                    <div class="stat-icon"
+                                        style="background: rgba(34, 197, 94, 0.1); color: var(--success);">🎉
+                                    </div>
+                                </div>
+                                <div class="stat-trend">Congratulations!</div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                            <div>
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                    <h2 style="font-size: 1.5rem; font-weight: 600;">Recommended Jobs</h2>
+                                    <a href="jobs.html"
+                                        style="color: var(--primary-blue); text-decoration: none; font-weight: 500;">View
+                                        All
+                                        →</a>
+                                </div>
+
+                                <div id="jobsList"></div>
+                            </div>
+
+                            <div>
+                                <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem;">Recent Activity
+                                </h2>
+                                <div class="card" style="padding: 1rem;">
+                                    <div
+                                        style="display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--gray-200);">
+                                        <div
+                                            style="width: 8px; height: 8px; border-radius: 50%; background: var(--success); margin-top: 0.5rem;">
+                                        </div>
+                                        <div>
+                                            <p style="font-weight: 500; margin-bottom: 0.25rem;">Interview scheduled</p>
+                                            <p style="font-size: 0.875rem; color: var(--gray-600);">Google India -
+                                                Senior
+                                                Developer</p>
+                                            <p style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">
+                                                2 hours
+                                                ago</p>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        style="display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--gray-200);">
+                                        <div
+                                            style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary-blue); margin-top: 0.5rem;">
+                                        </div>
+                                        <div>
+                                            <p style="font-weight: 500; margin-bottom: 0.25rem;">Application submitted
+                                            </p>
+                                            <p style="font-size: 0.875rem; color: var(--gray-600);">Amazon - Backend
+                                                Engineer
+                                            </p>
+                                            <p style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">
+                                                5 hours
+                                                ago</p>
+                                        </div>
+                                    </div>
+
+                                    <div style="display: flex; gap: 1rem; padding: 1rem 0;">
+                                        <div
+                                            style="width: 8px; height: 8px; border-radius: 50%; background: var(--warning); margin-top: 0.5rem;">
+                                        </div>
+                                        <div>
+                                            <p style="font-weight: 500; margin-bottom: 0.25rem;">Profile viewed</p>
+                                            <p style="font-size: 0.875rem; color: var(--gray-600);">Microsoft recruiter
+                                            </p>
+                                            <p style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">
+                                                1 day
+                                                ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <script src="assets/js/app.js"></script>
+                    <script>
+                        // Render recommended jobs
+                        function renderJobs() {
+                            const jobsList = document.getElementById('jobsList');
+                            const topJobs = AppState.jobs.slice(0, 3);
+
+                            jobsList.innerHTML = topJobs.map(job => `
                 <div class="job-card">
                     <div class="job-header">
                         <div class="company-logo">${job.company.charAt(0)}</div>
@@ -370,29 +578,44 @@
                     </div>
                 </div>
             `).join('');
-        }
+                        }
 
-        function quickApply(jobId) {
-            alert('Quick apply feature would customize your resume and submit the application!');
-            window.location.href = 'tracker.html';
-        }
+                        async function quickApply(jobId) {
+                            const btn = event.target;
+                            const originalText = btn.textContent;
+                            btn.disabled = true;
+                            btn.textContent = 'Applying...';
 
-        function viewJob(jobId) {
-            window.location.href = `jobs.html?id=${jobId}`;
-        }
+                            try {
+                                await window.JoBikaAPI.createApplication(jobId);
+                                btn.textContent = 'Applied ✅';
+                                btn.classList.remove('btn-primary');
+                                btn.classList.add('btn-success');
+                                alert('Application submitted successfully! Our AI has customized your resume for this role.');
+                            } catch (error) {
+                                console.error('Application failed:', error);
+                                alert('Failed to apply: ' + error.message);
+                                btn.disabled = false;
+                                btn.textContent = originalText;
+                            }
+                        }
 
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.clear();
-                window.location.href = 'index.html';
-            }
-        }
+                        function viewJob(jobId) {
+                            window.location.href = `jobs.html?id=${jobId}`;
+                        }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            renderJobs();
-        });
-    </script>
-</body>
+                        function logout() {
+                            if (confirm('Are you sure you want to logout?')) {
+                                localStorage.clear();
+                                window.location.href = 'index.html';
+                            }
+                        }
+
+                        // Initialize
+                        document.addEventListener('DOMContentLoaded', () => {
+                            renderJobs();
+                        });
+                    </script>
+                </body>
 
 </html>
