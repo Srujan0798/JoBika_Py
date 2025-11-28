@@ -12,31 +12,45 @@ class ResumeCustomizer:
     """
     
     def __init__(self):
-        self.skill_keywords = self._load_skill_keywords()
+        self.skill_keywords = None  # Lazy load on first use
     
     def _load_skill_keywords(self) -> Dict[str, List[str]]:
         """Load skill keywords from database"""
-        conn, db_type = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT domain_name, skills_list FROM domain_skills')
-        rows = cursor.fetchall()
-        conn.close()
-        
-        skill_keywords = {}
-        for row in rows:
-            domain = row['domain_name'] if isinstance(row, dict) else row[0]
-            skills_json = row['skills_list'] if isinstance(row, dict) else row[1]
-            try:
-                skill_keywords[domain] = json.loads(skills_json)
-            except:
-                skill_keywords[domain] = []
-        
-        return skill_keywords if skill_keywords else {
+        try:
+            conn, db_type = get_db_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute('SELECT domain_name, skills_list FROM domain_skills')
+            rows = cursor.fetchall()
+            conn.close()
+            
+            skill_keywords = {}
+            for row in rows:
+                domain = row['domain_name'] if isinstance(row, dict) else row[0]
+                skills_json = row['skills_list'] if isinstance(row, dict) else row[1]
+                try:
+                    skill_keywords[domain] = json.loads(skills_json)
+                except:
+                    skill_keywords[domain] = []
+            
+            return skill_keywords if skill_keywords else self._get_default_skills()
+        except Exception as e:
+            print(f"⚠️  Could not load skills from database: {e}")
+            print(f"   Using default skills")
+            return self._get_default_skills()
+    
+    def _get_default_skills(self) -> Dict[str, List[str]]:
+        """Fallback default skills if database is unavailable"""
+        return {
             'full_stack': ['react', 'node.js', 'javascript'],
             'backend': ['python', 'java', 'django'],
             'frontend': ['react', 'vue', 'angular']
         }
+    
+    def _ensure_skills_loaded(self):
+        """Ensure skills are loaded before use"""
+        if self.skill_keywords is None:
+            self.skill_keywords = self._load_skill_keywords()
     
     def customize_resume_for_job(self, base_resume: Dict, job_description: str, job_title: str) -> Dict:
         """
@@ -50,6 +64,9 @@ class ResumeCustomizer:
         Returns:
             Customized resume with highlighted relevant skills and experience
         """
+        # Ensure skills are loaded
+        self._ensure_skills_loaded()
+        
         # Extract job requirements
         job_skills = self._extract_skills_from_text(job_description)
         job_keywords = self._extract_keywords(job_description)
