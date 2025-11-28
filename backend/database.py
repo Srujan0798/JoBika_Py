@@ -11,7 +11,14 @@ def get_db_connection():
     """
     # Force SQLite for now
     print("📦 Using SQLite database")
-    conn = sqlite3.connect('jobika.db', check_same_thread=False)
+    
+    # On Vercel (read-only filesystem), use /tmp
+    if os.environ.get('VERCEL'):
+        db_path = '/tmp/jobika.db'
+    else:
+        db_path = 'jobika.db'
+        
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn, 'sqlite'
 
