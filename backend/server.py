@@ -170,7 +170,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Database helper functions
 # Database Configuration
-from database import get_db, get_db_connection, init_db, get_placeholder
+from database import get_db_connection, init_db, get_placeholder
 
 # Initialize database on startup
 print("🔄 Checking database schema...")
@@ -536,7 +536,7 @@ def oauth_callback(provider):
             email = email_resp.json()['elements'][0]['handle~']['emailAddress']
             
         # Check if user exists
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         
         cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
@@ -627,7 +627,7 @@ def upload_resume():
         enhanced_text = enhance_resume_text(original_text)
         
         # Store resume
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         
         cursor.execute('''
@@ -669,7 +669,7 @@ def customize_resume():
         job_id = data.get('jobId')
         
         # Get user's base resume
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         
         cursor.execute('''
@@ -749,7 +749,7 @@ def analyze_skill_gap():
         data = request.json
         job_id = data.get('jobId')
         
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         
         # Get user's skills
@@ -807,7 +807,7 @@ def analyze_skill_gap():
 def get_jobs():
     """Get all jobs"""
     try:
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         
         location = request.args.get('location')
@@ -863,7 +863,7 @@ def save_job():
         data = request.json
         job_id = data.get('jobId')
         
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         
         # Check if already saved
@@ -890,7 +890,7 @@ def get_saved_jobs():
         user_id = verify_token(token)
         if not user_id: return jsonify({'error': 'Unauthorized'}), 401
         
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         
         ph = get_placeholder()
@@ -931,7 +931,7 @@ def remove_saved_job(job_id):
         user_id = verify_token(token)
         if not user_id: return jsonify({'error': 'Unauthorized'}), 401
         
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         
         ph = get_placeholder()
@@ -999,7 +999,7 @@ def enhance_resume_section():
         scraped_jobs = job_scraper.scrape_all_jobs(query, location, limit)
         
         # Store in database
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         
         added_count = 0
@@ -1059,7 +1059,7 @@ def create_application():
         if not job_id:
             return jsonify({'error': 'Job ID required'}), 400
         
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         
         # Get job details
@@ -1139,7 +1139,7 @@ def get_applications():
         if not user_id:
             return jsonify({'error': 'Unauthorized'}), 401
         
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         
         cursor.execute('''
@@ -1326,7 +1326,7 @@ def setup_2fa():
         secret = pyotp.random_base32()
         
         # Generate QR code
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('SELECT email FROM users WHERE id = ?', (user_id,))
         user = cursor.fetchone()
@@ -1372,7 +1372,7 @@ def verify_2fa():
         totp = pyotp.TOTP(secret)
         if totp.verify(code):
             # Enable 2FA for user
-            conn = get_db()
+            conn, db_type = get_db_connection()
             cursor = conn.cursor()
             cursor.execute('''
                 UPDATE users 
@@ -1399,7 +1399,7 @@ def disable_2fa():
         if not user_id:
             return jsonify({'error': 'Unauthorized'}), 401
             
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('''
             UPDATE users 
@@ -1434,7 +1434,7 @@ def health():
 def seed_database():
     """Seed database with sample jobs"""
     try:
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         
         # Check if jobs already exist
@@ -1475,7 +1475,7 @@ def run_auto_apply_for_all_users():
     """Background job to run auto-apply for all users"""
     print("🤖 Running auto-apply for all users...")
     try:
-        conn = get_db()
+        conn, db_type = get_db_connection()
         cursor = conn.cursor()
         
         # Get users with auto-apply enabled
