@@ -362,12 +362,20 @@ def index():
         print(f"Error serving index.html: {e}")
         return jsonify({'error': 'Frontend not found', 'message': str(e)}), 404
 
-@app.route('/app/<path:path>')
+@app.route('/<path:path>')
 def send_app_files(path):
     """Serve static files from app directory"""
     try:
         return send_from_directory(static_folder_path, path)
     except Exception as e:
+        # If file not found, try serving index.html for client-side routing
+        # But only if it's not an API call or asset request
+        if not path.startswith('api/') and not path.startswith('assets/'):
+             try:
+                 return send_from_directory(static_folder_path, 'index.html')
+             except:
+                 pass
+        return jsonify({'error': 'File not found'}), 404
         print(f"Error serving {path}: {e}")
         return jsonify({'error': 'File not found', 'path': path}), 404
 
@@ -1515,15 +1523,6 @@ def run_auto_apply_for_all_users():
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=run_auto_apply_for_all_users, trigger="cron", hour=9)  # Run daily at 9 AM
 scheduler.start()
-
-# Serve frontend
-@app.route('/')
-def serve_frontend():
-    return send_from_directory(static_folder_path, 'index.html')
-
-@app.route('/<path:path>')
-def serve_static(path):
-    return send_from_directory(static_folder_path, path)
 
 if __name__ == '__main__':
     print("🚀 JoBika Server Starting...")
