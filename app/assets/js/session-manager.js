@@ -8,6 +8,39 @@ class SessionManager {
         this.isGuest = !this.hasAuthToken();
         this.guestDataKey = 'jobika_guest_data';
         this.initAuthModal();
+        this.init();
+    }
+
+    init() {
+        this.checkGuestStatus();
+        this.setupGuestBanner();
+        this.initDarkMode();
+    }
+
+    initDarkMode() {
+        const isDark = localStorage.getItem('jobika_dark_mode') === 'true';
+        if (isDark) {
+            this.injectDarkModeStyles();
+            document.body.classList.add('dark-mode');
+        }
+    }
+
+    injectDarkModeStyles() {
+        if (document.getElementById('darkModeStyles')) return;
+        const style = document.createElement('style');
+        style.id = 'darkModeStyles';
+        style.textContent = `
+            body.dark-mode { background-color: #111827; color: #f9fafb; }
+            body.dark-mode .sidebar { background-color: #1f2937; border-right-color: #374151; }
+            body.dark-mode .nav-link { color: #9ca3af; }
+            body.dark-mode .nav-link:hover, body.dark-mode .nav-link.active { background-color: #374151; color: white; }
+            body.dark-mode .card, body.dark-mode .settings-section, body.dark-mode .job-card, body.dark-mode .application-card, body.dark-mode .stat-card { background-color: #1f2937; color: #f9fafb; border-color: #374151; }
+            body.dark-mode .settings-title, body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6 { color: #f9fafb; }
+            body.dark-mode .form-input, body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background-color: #374151; border-color: #4b5563; color: white; }
+            body.dark-mode .text-gray-600, body.dark-mode .text-gray-700, body.dark-mode p, body.dark-mode .stat-label, body.dark-mode .job-company, body.dark-mode .job-meta { color: #d1d5db !important; }
+            body.dark-mode .main-content { background-color: #111827; }
+        `;
+        document.head.appendChild(style);
     }
 
     /**
@@ -78,222 +111,179 @@ class SessionManager {
     }
 
     /**
-     * Handle Modal Login
+     * Handle Login
      */
-    async handleModalLogin(event) {
+    async handleLogin(event) {
         event.preventDefault();
-        const form = event.target;
-        const btn = form.querySelector('button[type="submit"]');
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const btn = event.target.querySelector('button');
         const originalText = btn.textContent;
 
+        btn.textContent = 'Logging in...';
         btn.disabled = true;
-        btn.textContent = 'Signing in...';
 
         try {
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
-
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify({ email, password })
             });
 
-            const result = await response.json();
+            const data = await response.json();
 
             if (response.ok) {
-                localStorage.setItem('auth_token', result.token);
-                localStorage.setItem('user_data', JSON.stringify(result.user));
+                localStorage.setItem('auth_token', data.token);
+                this.isGuest = false;
+                this.hideAuthModal();
 
                 // Migrate guest data
                 await this.migrateGuestData();
 
-                // Reload page to reflect login state
                 window.location.reload();
             } else {
-                alert(result.error || 'Login failed');
+                alert(data.error || 'Login failed');
             }
         } catch (error) {
-            alert('Login failed: ' + error.message);
+            console.error('Login error:', error);
+            alert('Login failed. Please try again.');
         } finally {
-            btn.disabled = false;
             btn.textContent = originalText;
+            btn.disabled = false;
         }
     }
 
     /**
-     * Handle Modal Register
+     * Handle Registration
      */
-    async handleModalRegister(event) {
+    async handleRegister(event) {
         event.preventDefault();
-        const form = event.target;
-        const btn = form.querySelector('button[type="submit"]');
+        const name = document.getElementById('registerName').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const btn = event.target.querySelector('button');
         const originalText = btn.textContent;
 
+        btn.textContent = 'Creating Account...';
         btn.disabled = true;
-        btn.textContent = 'Creating account...';
 
         try {
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
-
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify({ name, email, password })
             });
 
-            const result = await response.json();
+            const data = await response.json();
 
             if (response.ok) {
-                localStorage.setItem('auth_token', result.token);
-                localStorage.setItem('user_data', JSON.stringify(result.user));
+                localStorage.setItem('auth_token', data.token);
+                this.isGuest = false;
+                this.hideAuthModal();
 
                 // Migrate guest data
                 await this.migrateGuestData();
 
-                // Reload page
                 window.location.reload();
             } else {
-                alert(result.error || 'Registration failed');
+                alert(data.error || 'Registration failed');
             }
         } catch (error) {
-            alert('Registration failed: ' + error.message);
+            console.error('Registration error:', error);
+            alert('Registration failed. Please try again.');
         } finally {
-            btn.disabled = false;
             btn.textContent = originalText;
+            btn.disabled = false;
         }
     }
 
     /**
-     * Store guest data temporarily (disappears when tab closes)
-     */
-    setGuestData(key, value) {
-        const guestData = this.getAllGuestData();
-        guestData[key] = value;
-        sessionStorage.setItem(this.guestDataKey, JSON.stringify(guestData));
-    }
-
-    /**
-     * Get specific guest data
-     */
-    getGuestData(key) {
-        const guestData = this.getAllGuestData();
-        return guestData[key] || null;
-    }
-
-    /**
-     * Get all guest data
-     */
-    getAllGuestData() {
-        const data = sessionStorage.getItem(this.guestDataKey);
-        return data ? JSON.parse(data) : {};
-    }
-
-    /**
-     * Clear all guest data
-     */
-    clearGuestData() {
-        sessionStorage.removeItem(this.guestDataKey);
-    }
-
-    /**
-     * Migrate guest data to user account after login
+     * Migrate Guest Data to User Account
      */
     async migrateGuestData() {
-        if (this.isGuest) return;
-
-        const guestData = this.getAllGuestData();
-        if (Object.keys(guestData).length === 0) return;
+        const guestData = sessionStorage.getItem(this.guestDataKey);
+        if (!guestData) return;
 
         try {
-            const token = localStorage.getItem('auth_token');
-            const response = await fetch('/api/auth/migrate-guest-data', {
+            await fetch('/api/auth/migrate-guest-data', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                 },
-                body: JSON.stringify({
-                    guestResume: guestData.resume,
-                    guestJobs: guestData.savedJobs || []
-                })
+                body: guestData
             });
-
-            if (response.ok) {
-                console.log('✅ Guest data migrated successfully');
-                this.clearGuestData();
-            }
+            sessionStorage.removeItem(this.guestDataKey);
         } catch (error) {
-            console.error('Failed to migrate guest data:', error);
+            console.error('Migration error:', error);
         }
     }
 
     /**
-     * Show guest mode banner
+     * Check Guest Status and Update UI
      */
-    showGuestBanner() {
+    checkGuestStatus() {
+        if (this.isGuest) {
+            document.body.classList.add('guest-mode');
+            this.updateGuestUI();
+        }
+    }
+
+    /**
+     * Update UI elements for guest mode
+     */
+    updateGuestUI() {
+        // Update user profile in sidebar
+        const userName = document.querySelector('.user-name');
+        const userRole = document.querySelector('.user-role');
+        if (userName) userName.textContent = 'Guest User';
+        if (userRole) userRole.textContent = 'Exploring Demo Mode';
+
+        // Update logout button to login
+        const logoutLink = document.querySelector('a[onclick="logout()"]');
+        if (logoutLink) {
+            logoutLink.innerHTML = '<span>🔑</span><span>Login to Save</span>';
+            logoutLink.onclick = (e) => {
+                e.preventDefault();
+                this.showAuthModal('login');
+            };
+        }
+    }
+
+    /**
+     * Setup Guest Banner
+     */
+    setupGuestBanner() {
         if (!this.isGuest) return;
 
         const banner = document.createElement('div');
         banner.className = 'guest-banner';
         banner.innerHTML = `
             <div class="guest-banner-content">
-                <span class="guest-icon">🎭</span>
-                <span class="guest-text">You're in Guest Mode. Your data will be lost when you close this tab.</span>
-                <button class="guest-login-btn" onclick="sessionManager.showAuthModal('register')">
-                    Login to Save
-                </button>
-                <button class="guest-close-btn" onclick="this.parentElement.parentElement.remove()">
-                    ×
-                </button>
+                <span>👋 You are exploring in Guest Mode. Data will be lost when you close the tab.</span>
+                <button onclick="sessionManager.showAuthModal('register')">Create Free Account</button>
             </div>
         `;
-
-        document.body.insertBefore(banner, document.body.firstChild);
+        document.body.prepend(banner);
     }
 
     /**
-     * Check if feature requires login
+     * Access Feature Guard
      */
-    requiresLogin(feature) {
-        const loginRequiredFeatures = [
-            'save_job',
-            'track_application',
-            'job_alerts',
-            'resume_versions',
-            'export_pdf',
-            'application_history'
-        ];
-
-        return loginRequiredFeatures.includes(feature);
-    }
-
-    /**
-     * Handle feature access
-     */
-    async accessFeature(feature, callback) {
-        if (this.requiresLogin(feature) && this.isGuest) {
+    accessFeature(featureName) {
+        if (this.isGuest) {
             this.showAuthModal('login');
             return false;
-        }
-
-        if (callback) {
-            await callback();
         }
         return true;
     }
 }
 
-// Initialize global session manager
+// Initialize
 const sessionManager = new SessionManager();
 
-// Show guest banner on page load
-document.addEventListener('DOMContentLoaded', () => {
-    sessionManager.showGuestBanner();
-});
-
-// Export for use in other scripts
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = SessionManager;
+// Global Logout
+function logout() {
+    localStorage.removeItem('auth_token');
+    window.location.href = 'index.html';
 }

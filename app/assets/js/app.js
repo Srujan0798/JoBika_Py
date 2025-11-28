@@ -221,6 +221,17 @@ async function createApplication(jobId) {
 
 async function loadApplications() {
     try {
+        if (window.sessionManager && window.sessionManager.isGuest) {
+            const guestApps = JSON.parse(sessionStorage.getItem('guest_applications') || '[]');
+            if (guestApps.length === 0) {
+                loadMockApplications();
+                sessionStorage.setItem('guest_applications', JSON.stringify(AppState.applications));
+            } else {
+                AppState.applications = guestApps;
+            }
+            return AppState.applications;
+        }
+
         const data = await apiCall('/applications');
         AppState.applications = data;
         return data;
@@ -229,6 +240,33 @@ async function loadApplications() {
         // Fallback to mock data
         loadMockApplications();
         return AppState.applications;
+    }
+}
+
+async function updateApplicationStatus(appId, newStatus) {
+    try {
+        if (window.sessionManager && window.sessionManager.isGuest) {
+            const appIndex = AppState.applications.findIndex(a => a.id === appId);
+            if (appIndex > -1) {
+                AppState.applications[appIndex].status = newStatus;
+                sessionStorage.setItem('guest_applications', JSON.stringify(AppState.applications));
+            }
+            return true;
+        }
+
+        await apiCall(`/applications/${appId}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        // Update local state
+        const app = AppState.applications.find(a => a.id === appId);
+        if (app) app.status = newStatus;
+
+        return true;
+    } catch (error) {
+        console.error('Failed to update status:', error);
+        throw error;
     }
 }
 
@@ -543,6 +581,7 @@ window.JoBikaAPI = {
     removeSavedJob,
     createApplication,
     loadApplications,
+    updateApplicationStatus,
     updateResume,
     enhanceResumeSection,
     isLoggedIn,

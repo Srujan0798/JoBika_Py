@@ -195,7 +195,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="settings.html" class="nav-link">
                     <span>⚙️</span>
                     <span>Settings</span>
                 </a>
@@ -281,7 +281,68 @@
 
         function viewApplication(appId) {
             const app = AppState.applications.find(a => a.id === appId);
-            alert(`Application Details:\n\n${app.position}\n${app.company}\n\nStatus: ${app.status.replace('_', ' ').toUpperCase()}\nApplied: ${formatDate(app.appliedDate)}\nMatch Score: ${app.matchScore}%\n\nThis would show full application details, timeline, and next steps.`);
+
+            const modal = document.createElement('div');
+            modal.className = 'auth-modal-overlay';
+            modal.style.display = 'flex';
+            modal.style.zIndex = '10000';
+            modal.innerHTML = `
+                <div class="auth-modal-container" style="max-width: 500px;">
+                    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem;">
+                        <div>
+                            <h2 style="margin:0;">${app.position}</h2>
+                            <p style="color:var(--gray-600);margin:0.25rem 0 0;">${app.company}</p>
+                        </div>
+                        <button onclick="this.closest('.auth-modal-overlay').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button>
+                    </div>
+                    
+                    <div style="background:#f8f9fa;padding:1rem;border-radius:0.5rem;margin-bottom:1.5rem;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;font-size:0.9rem;">
+                            <div>
+                                <div style="color:var(--gray-600);">Applied On</div>
+                                <div style="font-weight:500;">${formatDate(app.appliedDate)}</div>
+                            </div>
+                            <div>
+                                <div style="color:var(--gray-600);">Match Score</div>
+                                <div style="font-weight:500;color:var(--primary-blue);">${app.matchScore}%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:1.5rem;">
+                        <label style="display:block;margin-bottom:0.5rem;font-weight:500;">Current Status</label>
+                        <select id="statusSelect" style="width:100%;padding:0.75rem;border:1px solid var(--gray-300);border-radius:0.5rem;background:white;">
+                            <option value="applied" ${app.status === 'applied' ? 'selected' : ''}>Applied</option>
+                            <option value="under_review" ${app.status === 'under_review' ? 'selected' : ''}>Under Review</option>
+                            <option value="interview" ${app.status === 'interview' ? 'selected' : ''}>Interview</option>
+                            <option value="offer" ${app.status === 'offer' ? 'selected' : ''}>Offer</option>
+                        </select>
+                    </div>
+
+                    <div style="display:flex;gap:1rem;">
+                        <button class="btn btn-primary" style="flex:1;" onclick="updateStatus(${app.id})">Update Status</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function updateStatus(appId) {
+            const newStatus = document.getElementById('statusSelect').value;
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+
+            try {
+                await window.JoBikaAPI.updateApplicationStatus(appId, newStatus);
+                document.querySelector('.auth-modal-overlay').remove();
+                renderApplications(); // Re-render board
+            } catch (error) {
+                console.error(error);
+                alert('Failed to update status');
+                btn.disabled = false;
+                btn.textContent = 'Update Status';
+            }
         }
 
         // UI Functions (Copied from jobs.html for consistency)
@@ -362,22 +423,6 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
-            if (sessionManager.isGuest) {
-                // Show guest state
-                const container = document.querySelector('.applications-grid');
-                if (container) {
-                    container.innerHTML = `
-                        <div style="grid-column: 1/-1; text-align: center; padding: 4rem;">
-                            <div style="font-size: 4rem; margin-bottom: 1rem;">🔒</div>
-                            <h2>Login to Track Applications</h2>
-                            <p style="color: var(--gray-600); margin-bottom: 2rem;">Track your job applications, interviews, and offers in one place.</p>
-                            <button class="btn btn-primary" onclick="window.location.href='auth.html?mode=register'">Create Free Account</button>
-                        </div>
-                    `;
-                }
-                return;
-            }
-
             await window.JoBikaAPI.loadApplications();
             renderApplications();
         });

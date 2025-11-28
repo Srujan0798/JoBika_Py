@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - JoBika</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/index.css">
+    <link rel="stylesheet" href="assets/css/guest-mode.css">
+    <style>
+        /* Settings specific styles */
+        .settings-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--gray-900);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.5rem;
+            font-family: inherit;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary-blue);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #111827;
+            color: #f9fafb;
+        }
+
+        body.dark-mode .sidebar {
+            background-color: #1f2937;
+            border-right-color: #374151;
+        }
+
+        body.dark-mode .nav-link {
+            color: #9ca3af;
+        }
+
+        body.dark-mode .nav-link:hover,
+        body.dark-mode .nav-link.active {
+            background-color: #374151;
+            color: white;
+        }
+
+        body.dark-mode .settings-section,
+        body.dark-mode .card {
+            background-color: #1f2937;
+            color: #f9fafb;
+        }
+
+        body.dark-mode .settings-title,
+        body.dark-mode h1,
+        body.dark-mode h2,
+        body.dark-mode h3 {
+            color: #f9fafb;
+        }
+
+        body.dark-mode .form-input {
+            background-color: #374151;
+            border-color: #4b5563;
+            color: white;
+        }
+
+        body.dark-mode .form-label {
+            color: #d1d5db;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">JoBika</div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="dashboard.html" class="nav-link"><span>📊</span><span>Dashboard</span></a>
+            </li>
+            <li class="nav-item"><a href="jobs.html" class="nav-link"><span>🔍</span><span>Find Jobs</span></a></li>
+            <li class="nav-item"><a href="editor.html" class="nav-link"><span>📝</span><span>Resume Editor</span></a>
+            </li>
+            <li class="nav-item"><a href="tracker.html" class="nav-link"><span>📋</span><span>Applications</span></a>
+            </li>
+            <li class="nav-item"><a href="settings.html"
+                    class="nav-link active"><span>⚙️</span><span>Settings</span></a></li>
+        </ul>
+        <div class="user-profile">
+            <div class="user-avatar">👤</div>
+            <div class="user-info">
+                <div class="user-name">Guest User</div>
+                <div class="user-role">Job Seeker</div>
+            </div>
+        </div>
+        <div style="padding: 1.5rem;">
+            <a href="#" class="nav-link" onclick="logout()"><span>🚪</span><span>Logout</span></a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <h1 style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 2rem;">Settings</h1>
+
+        <div class="settings-section">
+            <h2 class="settings-title">Appearance</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: 500;">Dark Mode</div>
+                    <div style="color: var(--gray-600); font-size: 0.875rem;">Switch between light and dark themes</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2 class="settings-title">Profile Information</h2>
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-input" id="profileName" placeholder="Your Name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-input" id="profileEmail" placeholder="your@email.com">
+            </div>
+            <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+        </div>
+    </main>
+
+    <script src="assets/js/session-manager.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check guest status
+            if (sessionManager.isGuest) {
+                const logoutLink = document.querySelector('a[onclick="logout()"]');
+                if (logoutLink) {
+                    logoutLink.innerHTML = '<span>🔑</span><span>Login</span>';
+                    logoutLink.onclick = (e) => {
+                        e.preventDefault();
+                        sessionManager.showAuthModal('login');
+                    };
+                }
+            }
+
+            // Load Dark Mode state
+            const isDark = localStorage.getItem('jobika_dark_mode') === 'true';
+            document.getElementById('darkModeToggle').checked = isDark;
+            if (isDark) applyDarkMode(true);
+
+            // Load Profile Data
+            if (sessionManager.isGuest) {
+                const guestProfile = JSON.parse(sessionStorage.getItem('guest_profile') || '{}');
+                document.getElementById('profileName').value = guestProfile.name || '';
+                document.getElementById('profileEmail').value = guestProfile.email || '';
+
+                if (guestProfile.name) {
+                    document.querySelector('.user-name').textContent = guestProfile.name;
+                }
+            }
+        });
+
+        function toggleDarkMode() {
+            const isDark = document.getElementById('darkModeToggle').checked;
+            localStorage.setItem('jobika_dark_mode', isDark);
+            applyDarkMode(isDark);
+        }
+
+        function applyDarkMode(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        }
+
+        function saveProfile() {
+            const name = document.getElementById('profileName').value;
+            const email = document.getElementById('profileEmail').value;
+            const btn = event.target;
+
+            btn.textContent = 'Saving...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                if (sessionManager.isGuest) {
+                    sessionStorage.setItem('guest_profile', JSON.stringify({ name, email }));
+
+                    // Update sidebar
+                    const nameEl = document.querySelector('.user-name');
+                    if (nameEl) nameEl.textContent = name || 'Guest User';
+
+                    alert('Profile updated (Session only)');
+                } else {
+                    alert('Profile update API not implemented for logged in users yet.');
+                }
+                btn.textContent = 'Save Changes';
+                btn.disabled = false;
+            }, 800);
+        }
+    </script>
+</body>
+
+</html>
