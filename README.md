@@ -1,420 +1,132 @@
-```
-# 🚀 JoBika - AI-Powered Job Application Platform
+# JoBika - AI-Powered Job Application Platform
 
-> **Status**: ✅ Production Ready | **Cost**: $0/month | **Features**: 60+ | **API Endpoints**: 36+
+> **Status**: ✅ Working with SQLite | 🔄 PostgreSQL support coming soon
 
-Transform your job search with AI-powered resume customization, automated applications, and intelligent job matching.
+## Quick Start
 
-## ⭐ Quick Links
+### 1. Deploy to Render
 
-- 📚 [Complete Feature List](docs/FEATURES.md)
-- 🚀 [Quick Start Guide](docs/INSTALL.md)
-- 📖 [API Documentation](http://localhost:5000/api/docs/) (when running)
-- 🛠️ [Troubleshooting](docs/TROUBLESHOOTING.md)
-- 🔒 [Security Guide](docs/SECURITY.md)
-- 🎯 [Achievement Summary](docs/ACHIEVEMENTS.md)
-- 🚢 [Deployment Guide](docs/DEPLOYMENT.md)
-- 💡 [Quick Reference](docs/QUICKREF.md)
-- 🤝 [Contributing](docs/CONTRIBUTING.md)
+1. **Remove DATABASE_URL** from Render environment variables
+2. **Deploy** the latest commit
+3. **Done!** App works immediately with SQLite
 
-## 🆕 Latest Features
-
-- ✨ **Analytics Dashboard** - Beautiful charts and insights
-- 📊 **User Profile** - Comprehensive stats and history
-- 🎨 **Dark Mode** - System-aware theme toggle
-- 📝 **AI Cover Letters** - 3 professional templates
-- 🎓 **Interview Prep** - AI-generated questions & tips
-- ⚡ **Performance Caching** - Lightning-fast responses
-- 📧 **Smart Job Alerts** - Automated email notifications
-- 🔒 **Enhanced Security** - Production-ready protection
-
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-success)](https://github.com)
-[![Testing](https://img.shields.io/badge/Testing-Comprehensive-blue)](https://github.com)
-[![Cost](https://img.shields.io/badge/Cost-$0%2Fmonth-green)](https://github.com)
-
----
-
-## 🎯 What is JoBika?
-
-JoBika is a **complete AI job agent** that helps you find and apply to jobs globally. It customizes your resume for each job, analyzes skill gaps, and can even auto-apply to matching positions while you sleep.
-
-**Key Features**:
-- 🤖 **AI Resume Customization** - Tailored resume for each job
-- 📊 **Honest Skill Gap Analysis** - Know what to learn, with free resources
-- 🌍 **Universal Job Search** - Find jobs in US, Europe, Asia, Remote
-- ⚡ **Auto-Apply System** - Set preferences, let AI apply for you
-- 📈 **Application Tracking** - Manage everything in one dashboard
-
----
-
-## ✨ Features
-
-### **Core Features**
-- ✅ User authentication with JWT tokens
-- ✅ Resume upload (PDF/DOCX) with AI parsing
-- ✅ Job browsing with smart filtering
-- ✅ One-click applications
-- ✅ Application tracking dashboard
-- ✅ Email notifications
-
-### **AI Agent Features** ⭐
-- ✅ **Resume Customization** - Creates job-specific resume versions
-- ✅ **Skill Gap Analysis** - Shows matching vs missing skills
-- ✅ **Universal Job Scraping** - LinkedIn, Indeed, Naukri, Unstop
-- ✅ **Auto-Apply System** - Daily automated applications
-- ✅ **Learning Recommendations** - Free resources for missing skills
-
----
-
-## 🚀 Quick Start
-
-### **Prerequisites**
-- Python 3.8+ 
-- pip
-
-### **Method 1: Automated Setup (Recommended)**
+### 2. Local Development
 
 ```bash
-# Clone repository
-git clone <your-repo-url>
-cd JoBika_Py
-
-# Run automated setup (Mac/Linux)
-chmod +x setup.sh
-./setup.sh
-
-# Or use Python script (Cross-platform)
-python3 start.py
-```
-
-### **Method 2: Manual Setup**
-
-```bash
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
 # Install dependencies
-cd backend
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 
-# Run database migration
-python3 migrate_db.py
-
-# Start server
-python3 server.py
+# Run server
+python start.py
 ```
 
-### **Access Application**
+Visit: http://localhost:5000
+
+---
+
+## Project Structure
+
 ```
-Open http://localhost:5000/app/index.html in your browser
+JoBika_Pyt/
+├── app/                    # Frontend (HTML/CSS/JS)
+├── backend/                # Python Flask backend
+│   ├── server.py          # Main server
+│   ├── database.py        # Database connection
+│   ├── tests/             # Test scripts
+│   └── *.py               # Feature modules
+├── docs/                   # Documentation
+│   ├── archive/           # Old deployment guides
+│   └── deployment/        # Deployment scripts
+├── APP_NOW_WORKS.md       # ⭐ Current deployment guide
+├── MIGRATION_SUMMARY.md   # Database migration details
+└── README.md              # This file
 ```
 
 ---
 
-## 📖 Usage
+## Features
 
-### **1. Register/Login**
-```
-Navigate to http://localhost:5000/auth.html
-Create account or login
-```
-
-### **2. Upload Resume**
-```
-Go to Upload page
-Upload PDF or DOCX resume
-AI will extract skills and experience
-```
-
-### **3. Browse Jobs**
-```
-Visit Jobs page
-Filter by location, salary, skills
-See match scores for each job
-```
-
-### **4. Set Auto-Apply Preferences**
-```
-Go to Preferences page
-Toggle auto-apply ON
-Set target roles and locations
-Configure salary range
-```
-
-### **5. Track Applications**
-```
-Dashboard shows all applications
-Kanban board view
-Status tracking
-```
+- ✅ **AI Resume Parser** - Extract skills, experience from PDFs/DOCX
+- ✅ **Job Scraping** - Scrape jobs from LinkedIn, Indeed, Glassdoor
+- ✅ **Auto-Apply** - Automatically apply to matching jobs
+- ✅ **Resume Customizer** - Tailor resume for each job
+- ✅ **Interview Prep** - AI-generated interview questions
+- ✅ **Salary Insights** - Market salary data
+- ✅ **OAuth Login** - Google, LinkedIn authentication
+- ✅ **Email Notifications** - Job alerts and reminders
 
 ---
 
-## 🏗️ Architecture
+## Database
 
-### **Backend**
-- **Framework**: Flask (Python)
-- **Database**: SQLite (local) / PostgreSQL (production)
-- **Authentication**: JWT tokens
-- **Scheduling**: APScheduler (cron jobs)
+**Current**: SQLite (temporary, data resets on Render redeploys)
 
-### **Frontend**
-- **Pages**: 9 responsive pages
-- **Styling**: Vanilla CSS with design system
-- **JavaScript**: Vanilla JS with API integration
+**Future**: PostgreSQL via Supabase (requires Connection Pooling)
 
-### **AI Features**
-- **Resume Parser**: PyPDF2, python-docx
-- **Job Scraper**: BeautifulSoup, Selenium
-- **Customization**: Custom algorithms
-- **Skill Analysis**: Semantic matching
+### To Switch to PostgreSQL:
+
+1. Enable Connection Pooling in Supabase
+2. Add `DATABASE_URL` to Render environment
+3. Redeploy
+
+See `docs/archive/ENABLE_POOLING_GUIDE.md` for details.
 
 ---
 
-## 📁 Project Structure
+## Deployment
 
-```
-JoBika/
-├── app/                          # Frontend
-│   ├── index.html               # Landing page
-│   ├── auth.html                # Authentication
-│   ├── dashboard.html           # Dashboard
-│   ├── jobs.html                # Job search
-│   ├── preferences.html         # Auto-apply settings ⭐
-│   ├── resume-versions.html     # Resume versions ⭐
-│   └── assets/
-│       ├── css/main.css
-│       └── js/app.js
-│
-├── backend/                      # Backend
-│   ├── server.py                # Main Flask server
-│   ├── resume_parser.py         # PDF/DOCX parsing
-│   ├── resume_customizer.py     # Resume customization ⭐
-│   ├── job_scraper_universal.py # Universal job scraper ⭐
-│   ├── email_service.py         # Email notifications
-│   ├── migrate_db.py            # Database migration ⭐
-│   └── requirements.txt
-│
-├── docs/                         # Documentation
-│   ├── ARCHITECTURE.md
-│   ├── DESIGN_SYSTEM.md
-│   └── PITCH_DECK.md
-│
-├── README.md                     # This file
-├── docs/TESTING_COMPLETE.md          # Test results ⭐
-└── docs/PROJECT_STATUS.md            # Current status ⭐
-```
+### Render (Current)
+
+- **URL**: https://jobika-pyt.onrender.com
+- **Database**: SQLite
+- **Environment**: `SECRET_KEY` required for OAuth
+
+### Requirements
+
+- Python 3.10+
+- Flask 3.1.0
+- See `backend/requirements.txt` for full list
 
 ---
 
-## 🧪 Testing
+## Documentation
 
-### **Run Automated Tests**
+- **`APP_NOW_WORKS.md`** - Current deployment instructions
+- **`MIGRATION_SUMMARY.md`** - Database migration details
+- **`docs/archive/`** - Historical deployment guides
+- **`docs/deployment/`** - Deployment scripts and SQL files
+
+---
+
+## Development
+
+### Run Tests
+
 ```bash
-cd backend/tests
-python3 run_tests.py
+python backend/tests/test_features.py
 ```
 
-### **Run Specific Test Suites**
+### Database Schema
+
 ```bash
-# Unit tests only
-python3 test_basic.py
+# View schema
+cat backend/supabase_schema.sql
 
-# API integration tests only
-python3 test_api.py
+# Seed data
+python backend/seed_data.py
 ```
 
-### **Manual API Testing**
-```bash
-# Check database
-cd backend
-python3 check_db.py
+---
 
-# Test API endpoints
-# Registration
-POST http://localhost:5000/api/auth/register
-{
-  "email": "test@example.com",
-  "password": "test123",
-  "fullName": "Test User"
-}
+## Support
 
-# Get jobs
-GET http://localhost:5000/api/jobs
-
-# Scrape new jobs
-POST http://localhost:5000/api/jobs/scrape
-{
-  "query": "software engineer",
-  "location": "remote",
-  "limit": 10
-}
-```
-
-### **Test Results**
-See `docs/TESTING_COMPLETE.md` for comprehensive test results.
-
-**Summary**:
-- ✅ All API endpoints working
-- ✅ Database properly migrated
-- ✅ User registration/login working
-- ✅ Job scraping functional
-- ✅ All pages loading
+For issues or questions, check:
+1. `APP_NOW_WORKS.md` - Latest deployment guide
+2. `docs/archive/` - Historical troubleshooting
+3. GitHub Issues
 
 ---
 
-## 🌍 Universal Job Search
+## License
 
-JoBika finds jobs **globally**, not limited to one country:
-
-**Job Sources**:
-- 🇺🇸 LinkedIn (US, Global)
-- 🌐 Indeed (US, Europe, Remote)
-- 🇮🇳 Naukri (India)
-- 🎓 Unstop (India, Freshers)
-
-**Sample Jobs**:
-- Google (Remote, US) - $150k USD
-- Spotify (Remote, Europe) - €80k EUR
-- Flipkart (Bangalore) - ₹25 LPA
-- Amazon (Mumbai) - ₹20-28 LPA
-
----
-
-## 💰 Cost
-
-**Total**: **$0/month**
-
-**Free Services**:
-- Railway: $5 credit/month
-- Render: Free tier
-- Gmail SMTP: 500 emails/day
-- PostgreSQL: 500MB free
-- APScheduler: Free (local)
-
----
-
-## 🔧 Configuration
----
-
-## 📊 API Endpoints
-
-### **Authentication**
-- `POST /api/auth/register` - Register user
-- `POST /api/auth/login` - Login user
-
-### **Resume**
-- `POST /api/resume/upload` - Upload resume
-- `POST /api/resume/customize` - Customize for job ⭐
-- `POST /api/resume/skill-gap` - Analyze skill gap ⭐
-
-### **Jobs**
-- `GET /api/jobs` - Get all jobs
-- `POST /api/jobs/scrape` - Scrape new jobs ⭐
-
-### **Applications**
-- `POST /api/applications` - Apply to job
-- `GET /api/applications` - Get user applications
-
-### **Preferences** ⭐
-- `GET /api/preferences` - Get user preferences
-- `POST /api/preferences` - Update preferences
-
-### **Utility**
-- `GET /api/health` - Health check
-- `POST /api/seed` - Seed database
-
----
-
-## 🐛 Known Issues
-
-**All critical bugs fixed!** ✅
-
-**Fixed in Production**:
-- ✅ Database schema mismatch (password_hash)
-- ✅ DateTime import error in JWT generation
-
----
-
-## 🚀 Deployment
-
-### **Railway**
-```bash
-# Push to GitHub
-git push origin main
-
-# Connect to Railway
-# Deploy automatically
-```
-
-### **Render**
-```bash
-# Use render.yaml configuration
-# Deploy via Render dashboard
-```
-
-See `docs/DEPLOYMENT_GUIDE.md` for detailed instructions.
-
----
-
-## 📝 Documentation
-
-- `README.md` - This file
-- `docs/TESTING_COMPLETE.md` - Test results
-- `docs/PROJECT_STATUS.md` - Current status
-- `docs/ARCHITECTURE.md` - Technical architecture
-- `docs/DESIGN_SYSTEM.md` - UI/UX design system
-- `backend/README.md` - Backend documentation
-
----
-
-## 🎯 Roadmap
-
-**Phase 10** ✅ - AI Agent Features (COMPLETE)
-**Phase 11** ✅ - Production Testing (COMPLETE)
-
-**Future Enhancements**:
-- [ ] Mobile app (React Native)
-- [ ] Advanced AI models (Hugging Face)
-- [ ] More job sources
-- [ ] Analytics dashboard
-- [ ] Employer side
-
----
-
-## 👨‍💻 Author
-
-**Created by**: Srujan Sai  
-**Made in**: India  
-**For**: Global job seekers everywhere
-
----
-
-## 📄 License
-
-MIT License - Feel free to use and modify!
-
----
-
-## 🙏 Acknowledgments
-
-- Flask team for the amazing framework
-- BeautifulSoup for web scraping
-- PyPDF2 for PDF parsing
-- All open-source contributors
-
----
-
-## 📞 Support
-
-**Issues**: Create an issue on GitHub  
-**Questions**: Contact via email
-
----
-
-**JoBika helps job seekers succeed globally!** 🌍🚀
-
----
-
-## ⭐ Star this repo if you find it helpful!
+MIT License - See LICENSE file for details
