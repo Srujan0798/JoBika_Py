@@ -149,7 +149,20 @@ oauth.register(
 
 # Configuration
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production') # This line is now redundant due to app.config['SECRET_KEY']
-UPLOAD_FOLDER = 'uploads'
+# Ensure upload folder exists
+# On Vercel (read-only filesystem), use /tmp
+if os.environ.get('VERCEL'):
+    UPLOAD_FOLDER = '/tmp'
+else:
+    UPLOAD_FOLDER = 'uploads'
+
+try:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+except OSError as e:
+    print(f"⚠️  Could not create upload folder: {e}")
+    # Fallback to tmp if normal creation fails
+    UPLOAD_FOLDER = '/tmp'
+
 ALLOWED_EXTENSIONS = {'pdf', 'docx', 'doc'}
 
 # Initialize email service
@@ -164,9 +177,6 @@ except Exception as e:
 resume_customizer = ResumeCustomizer()
 skill_analyzer = SkillGapAnalyzer()
 job_scraper = UniversalJobScraper()
-
-# Ensure upload folder exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Database helper functions
 # Database Configuration
