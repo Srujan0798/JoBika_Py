@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="JoBika pricing plans - Choose the perfect plan for your job search in India">
+    <title>Pricing Plans - JoBika</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/mobile.css">
+    <link rel="stylesheet" href="assets/css/hamburger.css">
+    <style>
+        .pricing-hero {
+            text-align: center;
+            padding: 3rem 0;
+            background: linear-gradient(135deg, #FF6B35 0%, #004E98 100%);
+            color: white;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .pricing-hero h1 {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-hero p {
+            font-size: 1.125rem;
+            opacity: 0.9;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .pricing-card.popular {
+            border: 2px solid #FF6B35;
+            transform: scale(1.05);
+        }
+
+        .pricing-card.popular::before {
+            content: "MOST POPULAR";
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: #FF6B35;
+            color: white;
+            padding: 0.25rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--gray-900);
+        }
+
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #FF6B35;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-price small {
+            font-size: 1rem;
+            color: var(--gray-600);
+            font-weight: 400;
+        }
+
+        .plan-description {
+            color: var(--gray-600);
+            margin-bottom: 1.5rem;
+            min-height: 40px;
+        }
+
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2rem;
+        }
+
+        .plan-features li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-check {
+            color: #06D6A0;
+            font-size: 1.25rem;
+        }
+
+        .feature-cross {
+            color: var(--gray-400);
+            font-size: 1.25rem;
+        }
+
+        .plan-cta {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .plan-cta.primary {
+            background: linear-gradient(135deg, #FF6B35 0%, #004E98 100%);
+            color: white;
+            border: none;
+        }
+
+        .plan-cta.secondary {
+            background: white;
+            color: #FF6B35;
+            border: 2px solid #FF6B35;
+        }
+
+        .plan-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+        }
+
+        .comparison-table {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        .comparison-table h2 {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .comparison-table th {
+            background: var(--gray-100);
+            font-weight: 600;
+        }
+
+        .comparison-table td:not(:first-child) {
+            text-align: center;
+        }
+
+        /* Dark mode */
+        body.dark-mode .pricing-card,
+        body.dark-mode .comparison-table {
+            background: #1f2937;
+        }
+
+        body.dark-mode .plan-name {
+            color: white;
+        }
+
+        body.dark-mode .plan-features li {
+            border-color: #374151;
+            color: #d1d5db;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="main-content" style="padding: 2rem 4rem;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div class="pricing-hero">
+                <h1>Choose Your Perfect Plan</h1>
+                <p>Flexible pricing for every job seeker in India</p>
+                <p style="font-size: 0.875rem; margin-top: 1rem;">🎉 <strong>Limited Time:</strong> Get 20% off on
+                    annual plans!</p>
+            </div>
+
+            <div class="pricing-grid">
+                <!-- Free Plan -->
+                <div class="pricing-card">
+                    <div class="plan-name">Free</div>
+                    <div class="plan-price">
+                        ₹0
+                        <small>/month</small>
+                    </div>
+                    <div class="plan-description">Perfect for exploring JoBika</div>
+
+                    <ul class="plan-features">
+                        <li><span class="feature-check">✓</span> 10 job matches per day</li>
+                        <li><span class="feature-check">✓</span> 1 resume tailoring per week</li>
+                        <li><span class="feature-check">✓</span> Basic AI Career Coach</li>
+                        <li><span class="feature-check">✓</span> Manual applications only</li>
+                        <li><span class="feature-cross">✗</span> Auto-apply</li>
+                        <li><span class="feature-cross">✗</span> Application tracker</li>
+                        <li><span class="feature-cross">✗</span> Priority support</li>
+                    </ul>
+
+                    <button class="plan-cta secondary" onclick="selectPlan('free')">Get Started Free</button>
+                </div>
+
+                <!-- Starter Plan -->
+                <div class="pricing-card">
+                    <div class="plan-name">Starter</div>
+                    <div class="plan-price">
+                        ₹499
+                        <small>/month</small>
+                    </div>
+                    <div class="plan-description">For active job seekers</div>
+
+                    <ul class="plan-features">
+                        <li><span class="feature-check">✓</span> <strong>Unlimited</strong> job matches</li>
+                        <li><span class="feature-check">✓</span> 10 tailored resumes/month</li>
+                        <li><span class="feature-check">✓</span> 20 auto-applies/month</li>
+                        <li><span class="feature-check">✓</span> Application tracker</li>
+                        <li><span class="feature-check">✓</span> Email support</li>
+                        <li><span class="feature-cross">✗</span> Cover letter generation</li>
+                        <li><span class="feature-cross">✗</span> Advanced analytics</li>
+                    </ul>
+
+                    <button class="plan-cta secondary" onclick="selectPlan('starter')">Choose Starter</button>
+                </div>
+
+                <!-- Pro Plan (Popular) -->
+                <div class="pricing-card popular">
+                    <div class="plan-name">Pro</div>
+                    <div class="plan-price">
+                        ₹999
+                        <small>/month</small>
+                    </div>
+                    <div class="plan-description">Maximum job search efficiency</div>
+
+                    <ul class="plan-features">
+                        <li><span class="feature-check">✓</span> Everything in Starter</li>
+                        <li><span class="feature-check">✓</span> <strong>Unlimited</strong> tailored resumes</li>
+                        <li><span class="feature-check">✓</span> 50 auto-applies/month</li>
+                        <li><span class="feature-check">✓</span> Priority job matching</li>
+                        <li><span class="feature-check">✓</span> Advanced analytics</li>
+                        <li><span class="feature-check">✓</span> Cover letter generation</li>
+                        <li><span class="feature-check">✓</span> Priority support</li>
+                    </ul>
+
+                    <button class="plan-cta primary" onclick="selectPlan('pro')">Choose Pro</button>
+                </div>
+
+                <!-- Premium Plan -->
+                <div class="pricing-card">
+                    <div class="plan-name">Premium</div>
+                    <div class="plan-price">
+                        ₹1,999
+                        <small>/month</small>
+                    </div>
+                    <div class="plan-description">Ultimate career acceleration</div>
+
+                    <ul class="plan-features">
+                        <li><span class="feature-check">✓</span> Everything in Pro</li>
+                        <li><span class="feature-check">✓</span> <strong>Unlimited</strong> auto-applies</li>
+                        <li><span class="feature-check">✓</span> Dedicated career coach (human)</li>
+                        <li><span class="feature-check">✓</span> Salary negotiation assistance</li>
+                        <li><span class="feature-check">✓</span> Interview prep calls (2/month)</li>
+                        <li><span class="feature-check">✓</span> LinkedIn profile optimization</li>
+                        <li><span class="feature-check">✓</span> 24/7 priority support</li>
+                    </ul>
+
+                    <button class="plan-cta secondary" onclick="selectPlan('premium')">Choose Premium</button>
+                </div>
+            </div>
+
+            <div class="comparison-table">
+                <h2>Detailed Feature Comparison</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Free</th>
+                            <th>Starter</th>
+                            <th>Pro</th>
+                            <th>Premium</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Daily Job Matches</td>
+                            <td>10</td>
+                            <td>Unlimited</td>
+                            <td>Unlimited</td>
+                            <td>Unlimited</td>
+                        </tr>
+                        <tr>
+                            <td>Resume Tailoring</td>
+                            <td>1/week</td>
+                            <td>10/month</td>
+                            <td>Unlimited</td>
+                            <td>Unlimited</td>
+                        </tr>
+                        <tr>
+                            <td>Auto-Apply Jobs</td>
+                            <td>—</td>
+                            <td>20/month</td>
+                            <td>50/month</td>
+                            <td>Unlimited</td>
+                        </tr>
+                        <tr>
+                            <td>Cover Letters</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>✓</td>
+                            <td>✓</td>
+                        </tr>
+                        <tr>
+                            <td>Application Tracker</td>
+                            <td>—</td>
+                            <td>✓</td>
+                            <td>✓</td>
+                            <td>✓</td>
+                        </tr>
+                        <tr>
+                            <td>AI Career Coach</td>
+                            <td>Basic</td>
+                            <td>Basic</td>
+                            <td>Advanced</td>
+                            <td>Advanced + Human</td>
+                        </tr>
+                        <tr>
+                            <td>Salary Insights</td>
+                            <td>✓</td>
+                            <td>✓</td>
+                            <td>✓</td>
+                            <td>✓ + Negotiation Help</td>
+                        </tr>
+                        <tr>
+                            <td>Networking Helper</td>
+                            <td>—</td>
+                            <td>✓</td>
+                            <td>✓</td>
+                            <td>✓</td>
+                        </tr>
+                        <tr>
+                            <td>Priority Matching</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>✓</td>
+                            <td>✓</td>
+                        </tr>
+                        <tr>
+                            <td>Interview Prep</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>Resources</td>
+                            <td>Live Calls (2/mo)</td>
+                        </tr>
+                        <tr>
+                            <td>Support</td>
+                            <td>Community</td>
+                            <td>Email</td>
+                            <td>Priority Email</td>
+                            <td>24/7 Priority</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div
+                style="text-align: center; margin-top: 3rem; padding: 2rem; background: var(--gray-100); border-radius: 1rem;">
+                <h3 style="margin-bottom: 1rem;">💡 Not sure which plan is right for you?</h3>
+                <p style="color: var(--gray-600); margin-bottom: 1.5rem;">
+                    Start with our <strong>Free plan</strong> and upgrade anytime!<br>
+                    All paid plans include a <strong>7-day money-back guarantee</strong>.
+                </p>
+                <button class="btn btn-primary" onclick="window.location.href='dashboard.html'">
+                    Start Free Trial
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function selectPlan(plan) {
+            if (plan === 'free') {
+                alert('You\'re already on the Free plan! Start exploring JoBika.');
+                window.location.href = 'dashboard.html';
+            } else {
+                alert(`You selected the ${plan.toUpperCase()} plan!\n\nPayment integration coming soon.\nFor now, enjoy all Pro features for free!`);
+                // In production, this would redirect to payment gateway
+                // e.g., Razorpay integration
+                localStorage.setItem('jobika_plan', plan);
+                window.location.href = 'dashboard.html';
+            }
+        }
+    </script>
+</body>
+
+</html>
