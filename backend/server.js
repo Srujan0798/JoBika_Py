@@ -1,20 +1,14 @@
-
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const puppeteer = require('puppeteer'); // Keep this import as it was in the original
-const ApplicationFormFiller = require('./services/ApplicationFormFiller');
-const AIServices = require('./services/AIServices');
+
+// Import services
+const DatabaseManager = require('./database/db');
+const AuthService = require('./services/AuthService');
+const OrionCoachService = require('./services/OrionCoachService');
 const JobScraper = require('./services/JobScraper');
-const AnalyticsService = require('./services/AnalyticsService');
-const NotificationService = require('./services/NotificationService');
-const ReferralService = require('./services/ReferralService');
-const PremiumService = require('./services/PremiumService');
-const MonetizationService = require('./services/MonetizationService');
-const SecurityService = require('./services/SecurityService');
 const ATSService = require('./services/ATSService');
-const CultureFitService = require('./services/CultureFitService');
-const ComplianceService = require('./services/ComplianceService');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -22,291 +16,239 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static('../app')); // Serve frontend files
 
-// Initialize Services
-const formFiller = new ApplicationFormFiller();
-const aiServices = new AIServices(process.env.OPENAI_API_KEY);
+// Initialize services
+const db = new DatabaseManager();
+const authService = new AuthService();
+const orionService = new OrionCoachService(process.env.OPENAI_API_KEY);
 const jobScraper = new JobScraper();
-const analyticsService = new AnalyticsService();
-const notificationService = new NotificationService();
-const referralService = new ReferralService();
 const atsService = new ATSService();
-const cultureFitService = new CultureFitService();
-const complianceService = new ComplianceService();
-// Premium & Monetization are singletons
-const premiumService = PremiumService;
-const monetizationService = MonetizationService;
-const securityService = SecurityService;
 
-// --- Routes ---
-
-// Health Check
+// Health check
 app.get('/health', (req, res) => {
-    res.json({ status: 'ok', services: ['smart-apply', 'cover-letter', 'interview-prep', 'scrape-jobs', 'analytics', 'notifications', 'community'] });
+    res.json({
+        status: 'ok',
+        database: db.db ? 'connected' : 'disconnected',
+        openai: process.env.OPENAI_API_KEY ? 'configured' : 'not configured'
+    });
 });
 
-// 1. Smart Apply Endpoint
-app.post('/api/smart-apply', async (req, res) => {
-    try {
-        const { jobUrl, userProfile, resumePath, supervised } = req.body;
-        const result = await formFiller.fillApplication(jobUrl, userProfile, resumePath, supervised);
-        res.json({ success: true, result });
-    } catch (error) {
-        console.error('Smart Apply Error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
+// ====== AUTHENTICATION ROUTES ======
 
-// 2. AI Cover Letter Endpoint
-app.post('/api/generate-cover-letter', async (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
     try {
-        const { userProfile, jobDescription, companyInfo, variations } = req.body;
-        const result = await aiServices.generateCoverLetter(userProfile, jobDescription, companyInfo, variations);
+        const { email, password, name, profileData } = req.body;
+        const result = await authService.register(email, password, name, profileData);
         res.json(result);
     } catch (error) {
-        console.error('Cover Letter Error:', error);
-        res.status(500).json({ error: error.message });
+        res.status(400).json({ error: error.message });
     }
 });
 
-// 3. AI Interview Prep Endpoint
-app.post('/api/interview-prep', async (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
     try {
-        const { jobDescription, companyName, userProfile } = req.body;
-        const result = await aiServices.generateInterviewPrep(jobDescription, companyName, userProfile);
+        const { email, password } = req.body;
+        const result = await authService.login(email, password);
         res.json(result);
     } catch (error) {
-        console.error('Interview Prep Error:', error);
+        res.status(401).json({ error: error.message });
+    }
+});
+
+// ====== APPLICATION ROUTES ======
+
+app.get('/api/applications', authService.authMiddleware.bind(authService), (req, res) => {
+    try {
+        const applications = db.getApplications(req.userId);
+        res.json({ applications });
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// 4. Job Scraping Endpoint
+app.post('/api/applications', authService.authMiddleware.bind(authService), (req, res) => {
+    try {
+        const result = db.createApplication(req.userId, req.body);
+        res.json({ success: true, applicationId: result.lastInsertRowid });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.put('/api/applications/:id/status', authService.authMiddleware.bind(authService), (req, res) => {
+    try {
+        const { status } = req.body;
+        db.updateApplicationStatus(req.params.id, status);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ====== JOB SCRAPER ROUTES ======
+
 app.post('/api/scrape-jobs', async (req, res) => {
     try {
-        const { source, query, location } = req.body;
-        console.log('Scraping request: ' + source + ' for ' + query + ' in ' + location);
+        const { role, location, limit } = req.body;
 
-        const jobs = await jobScraper.searchJobs(source, query, location);
-        res.json({ jobs, count: jobs.length });
+        console.log(`Scraping jobs for: ${role} in ${location}`);
+
+        // Scrape jobs from LinkedIn
+        const jobs = await jobScraper.scrapeLinkedIn(role, location, limit || 20);
+
+        // Save jobs to database
+        jobs.forEach(job => {
+            try {
+                db.saveJob({
+                    ...job,
+                    source: 'LinkedIn'
+                });
+            } catch (err) {
+                console.error('Error saving job:', err);
+            }
+        });
+
+        res.json({ jobs });
     } catch (error) {
-        console.error('Scraping Error:', error);
+        console.error('Job scraping error:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
-// 5. Analytics Endpoints
-app.get('/api/analytics/insights', async (req, res) => {
+app.get('/api/jobs', (req, res) => {
     try {
-        const userId = req.query.userId || 1; // Mock user ID
-        const insights = await analyticsService.generateUserInsights(userId);
-        res.json(insights);
-    } catch (error) {
-        console.error('Analytics Error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.post('/api/analytics/event', async (req, res) => {
-    try {
-        const eventData = req.body;
-        const result = await analyticsService.trackEvent(eventData);
-        res.json(result);
-    } catch (error) {
-        console.error('Analytics Track Error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// 6. Notification Test Endpoint
-app.post('/api/notifications/test', async (req, res) => {
-    try {
-        const { type, message } = req.body;
-        // Mock user
-        const user = { id: 1, email: 'test@example.com', phone: '9876543210' };
-
-        if (type === 'match') {
-            await notificationService.sendJobMatchAlert(user, { title: 'Test Job', company: 'Test Co', url: '#' }, 95);
-        } else {
-            await notificationService.sendPushNotification(user.id, message || 'Test Notification');
-        }
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Notification Error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// 7. Community & Referrals Endpoint
-app.get('/api/community/referrals', async (req, res) => {
-    try {
-        const { company } = req.query;
-        const connections = await referralService.findReferralConnections(1, company || '');
-        res.json({ connections });
-    } catch (error) {
-        console.error('Referral Error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/api/community/groups', async (req, res) => {
-    try {
-        const groups = await referralService.getCommunityGroups();
-        res.json({ groups });
-    } catch (error) {
-        console.error('Community Error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// 8. Premium & Monetization Endpoints
-
-// Get User Subscription & Credits
-app.get('/api/user/status', async (req, res) => {
-    try {
-        const userId = req.query.userId || 'demo-user';
-        const subscription = await premiumService.getUserSubscription(userId);
-        const credits = await monetizationService.getCredits(userId);
-        res.json({ subscription, credits });
+        const { title, location, company, limit } = req.query;
+        const jobs = db.searchJobs({ title, location, company, limit: parseInt(limit) || 50 });
+        res.json({ jobs });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// Upgrade Subscription
-app.post('/api/premium/upgrade', async (req, res) => {
+// ====== ORION AI CHAT ROUTES ======
+
+app.post('/api/orion/chat', authService.authMiddleware.bind(authService), async (req, res) => {
     try {
-        const { userId, tier } = req.body;
-        const result = await premiumService.upgradeUser(userId || 'demo-user', tier);
-        res.json(result);
+        const { message, folder } = req.body;
+
+        // Save user message
+        db.saveChatMessage(req.userId, 'user', message, folder || 'All');
+
+        // Get chat history for context
+        const history = db.getChatHistory(req.userId, folder, 10);
+
+        // Get AI response
+        const response = await orionService.chatWithOrion(message, history);
+
+        // Save AI response
+        db.saveChatMessage(req.userId, 'assistant', response, folder || 'All');
+
+        res.json({ response, success: true });
+    } catch (error) {
+        console.error('Chat error:', error);
+        res.status(500).json({
+            error: 'Chat service error',
+            response: 'I apologize, but I\'m having trouble connecting right now. Please check if OpenAI API key is configured.'
+        });
+    }
+});
+
+app.get('/api/orion/history', authService.authMiddleware.bind(authService), (req, res) => {
+    try {
+        const { folder, limit } = req.query;
+        const history = db.getChatHistory(req.userId, folder, parseInt(limit) || 100);
+        res.json({ history });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// Company Insights (Premium Feature)
-app.get('/api/company/insights', async (req, res) => {
+// ====== ATS RESUME CHECKER ROUTES ======
+
+app.post('/api/ats-check', authService.authMiddleware.bind(authService), async (req, res) => {
     try {
-        const { company, userId } = req.query;
+        const { resumeText } = req.body;
 
-        // Check if user has access (mock check)
-        const sub = await premiumService.getUserSubscription(userId || 'demo-user');
-        if (sub.tier === 'free') {
-            // Deduct credits for free users
-            await monetizationService.deductCredits(userId || 'demo-user', 'company_insights', 15);
-        }
+        // Save resume
+        const resumeResult = db.saveResume(req.userId, resumeText);
 
-        const insights = await premiumService.getCompanyInsights(company);
-        res.json(insights);
+        // Analyze resume
+        const analysis = await atsService.analyzeResume(resumeText);
+
+        // Update with analysis
+        db.updateResumeAnalysis(
+            resumeResult.lastInsertRowid,
+            analysis.score,
+            analysis.keywords,
+            analysis.suggestions
+        );
+
+        res.json({ analysis, success: true });
     } catch (error) {
-        res.status(403).json({ error: error.message });
+        console.error('ATS check error:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
-// Referral Invite
-app.post('/api/referral/invite', async (req, res) => {
+// ====== ANALYTICS ROUTES ======
+
+app.get('/api/analytics', authService.authMiddleware.bind(authService), (req, res) => {
     try {
-        const { userId, email } = req.body;
-        const code = await monetizationService.generateReferralCode(userId || 'demo-user');
-        // Mock sending email
-        console.log('[REFERRAL] Sent invite to ' + email + ' with code ' + code);
-        res.json({ success: true, code });
+        const stats = db.getApplicationStats(req.userId);
+        res.json({ stats });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// 9. Advanced AI & Compliance Endpoints
+// ====== COVER LETTER GENERATION ======
 
-// ATS Score
-app.post('/api/ats/score', async (req, res) => {
+app.post('/api/cover-letter', authService.authMiddleware.bind(authService), async (req, res) => {
     try {
-        const { resumeText, jobDescription } = req.body;
-        const result = await atsService.calculateATSScore(resumeText, jobDescription);
-        res.json(result);
+        const { userProfile, jobDescription, companyInfo } = req.body;
+
+        // For now, use Orion to generate cover letter via chat
+        const prompt = `Generate a professional cover letter for:
+Company: ${companyInfo.name}
+Role: ${jobDescription.title}
+My Profile: ${JSON.stringify(userProfile)}
+
+Job Description: ${jobDescription.full}`;
+
+        const coverLetter = await orionService.chatWithOrion(prompt, []);
+        res.json({ coverLetter, success: true });
     } catch (error) {
+        console.error('Cover letter error:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
-// Culture Fit
-app.post('/api/culture/analyze', async (req, res) => {
+// ====== INTERVIEW PREP ======
+
+app.post('/api/interview-prep', authService.authMiddleware.bind(authService), async (req, res) => {
     try {
-        const { userProfile, companyInfo } = req.body;
-        const result = await cultureFitService.analyzeCultureFit(userProfile, companyInfo);
-        res.json(result);
+        const { jobDescription, companyName, userProfile } = req.body;
+        const prep = await aiServices.generateInterviewPrep(jobDescription, companyName, userProfile);
+        res.json({ prep, success: true });
     } catch (error) {
+        console.error('Interview prep error:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
-// Compliance - Consent
-app.post('/api/compliance/consent', async (req, res) => {
-    try {
-        const { userId, consentType } = req.body;
-        const ip = req.ip;
-        await complianceService.recordConsent(userId, consentType, ip);
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Compliance - Export Data
-app.get('/api/compliance/export', async (req, res) => {
-    try {
-        const { userId } = req.query;
-        const data = await complianceService.exportUserData(userId);
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Compliance - Delete Account
-app.post('/api/compliance/delete', async (req, res) => {
-    try {
-        const { userId, reason } = req.body;
-        const result = await complianceService.requestDeletion(userId, reason);
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// 10. Orion AI Coach Endpoint
-const OrionCoachService = require('./services/OrionCoachService');
-const orionCoach = new OrionCoachService(process.env.OPENAI_API_KEY);
-
-app.post('/api/orion/chat', async (req, res) => {
-    try {
-        const { message, history } = req.body;
-        const response = await orionCoach.chat(message, history);
-        res.json({ response });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// 11. Application Tracker Endpoints
-let applications = [
-    { id: 1, company: 'Swiggy', role: 'Senior React Developer', date: '2024-11-28', status: 'Interview' },
-    { id: 2, company: 'Zomato', role: 'Product Manager', date: '2024-11-27', status: 'Applied' },
-    { id: 3, company: 'Flipkart', role: 'SDE II', date: '2024-11-25', status: 'Rejected' }
-];
-
-app.get('/api/applications', (req, res) => {
-    res.json({ applications });
-});
-
-app.post('/api/applications', (req, res) => {
-    const newApp = { id: applications.length + 1, ...req.body, date: new Date().toISOString().split('T')[0] };
-    applications.push(newApp);
-    res.json({ success: true, application: newApp });
-});
-
-// Start Server
+// Start server
 app.listen(port, () => {
-    console.log('JoBika AI Backend running on port ' + port);
+    console.log(`\n🚀 JoBika Backend Server Running`);
+    console.log(`📍 Port: ${port}`);
+    console.log(`💾 Database: ${db.dbPath}`);
+    console.log(`🤖 OpenAI: ${process.env.OPENAI_API_KEY ? '✅ Configured' : '❌ Not configured'}`);
+    console.log(`\n✨ All systems ready!\n`);
 });
 
+// Graceful shutdown
+process.on('SIGINT', () => {
+    console.log('\nShutting down gracefully...');
+    db.close();
+    process.exit(0);
+});
