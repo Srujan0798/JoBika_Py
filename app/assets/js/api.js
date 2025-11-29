@@ -1,7 +1,18 @@
 // JoBika Frontend API Client - REAL Backend Integration
 class JoBikaAPI {
     constructor() {
-        this.baseURL = 'http://localhost:3000';
+        /**
+         * API Configuration
+         * Automatically detects environment and uses correct API URL
+         */
+
+        // API URL - Update this after Railway deployment
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'  // Local development
+            : 'https://jobika-backend-production.up.railway.app';  // Production (UPDATE THIS after Railway deployment)
+
+        console.log('🔗 API URL:', API_URL);
+        this.baseURL = API_URL;
         this.token = localStorage.getItem('jobika_token');
     }
 
@@ -227,8 +238,8 @@ const UI = {
     showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-500' :
-                type === 'error' ? 'bg-red-500' :
-                    'bg-blue-500'
+            type === 'error' ? 'bg-red-500' :
+                'bg-blue-500'
             } text-white`;
         toast.textContent = message;
         document.body.appendChild(toast);
