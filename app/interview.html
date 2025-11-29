@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Prep - JobSaathi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/index.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <span>🚀</span> JobSaathi
+            </div>
+
+            <nav>
+                <a href="dashboard.html" class="nav-item">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="jobs.html" class="nav-item">
+                    <span class="nav-icon">💼</span> Job Matches
+                </a>
+                <a href="tracker.html" class="nav-item">
+                    <span class="nav-icon">📌</span> Tracker
+                </a>
+                <div style="margin: 20px 0; border-top: 1px solid #E2E8F0;"></div>
+                <div class="text-gray text-sm font-bold mb-2 px-4">AI TOOLS</div>
+                <a href="chat.html" class="nav-item">
+                    <span class="nav-icon">🤖</span> Orion Coach
+                </a>
+                <a href="ats-checker.html" class="nav-item">
+                    <span class="nav-icon">📝</span> ATS Checker
+                </a>
+                <a href="skills.html" class="nav-item">
+                    <span class="nav-icon">🧠</span> Skill Advisor
+                </a>
+                <a href="interview.html" class="nav-item active">
+                    <span class="nav-icon">🎤</span> Interview Prep
+                </a>
+                <a href="salary.html" class="nav-item">
+                    <span class="nav-icon">💰</span> Salary Predictor
+                </a>
+                <div style="margin: 20px 0; border-top: 1px solid #E2E8F0;"></div>
+                <a href="pricing.html" class="nav-item">
+                    <span class="nav-icon">💎</span> Premium
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <span class="nav-icon">⚙️</span> Settings
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="mb-8">
+                <h1 class="text-2xl font-bold mb-2">AI Interview Simulator</h1>
+                <p class="text-gray">Practice with our AI interviewer to ace your real interviews.</p>
+            </header>
+
+            <div class="grid grid-cols-2 gap-6 mb-8">
+                <!-- Start Interview Card -->
+                <div class="card bg-gradient-to-br from-blue-50 to-white border-blue-100">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="text-4xl">🎤</span>
+                        <span class="badge badge-new">Popular</span>
+                    </div>
+                    <h2 class="text-xl font-bold mb-2">Mock Interview</h2>
+                    <p class="text-gray mb-6">Simulate a real interview for your target role. Get real-time feedback on
+                        your answers, tone, and body language.</p>
+                    <button class="btn btn-primary w-full" onclick="startInterview()">Start Session</button>
+                </div>
+
+                <!-- Practice Modes -->
+                <div class="flex flex-col gap-4">
+                    <div class="card flex items-center gap-4 cursor-pointer hover:shadow-md transition">
+                        <span class="text-2xl">⭐</span>
+                        <div>
+                            <h3 class="font-bold">STAR Method Practice</h3>
+                            <p class="text-xs text-gray">Master behavioral questions</p>
+                        </div>
+                    </div>
+                    <div class="card flex items-center gap-4 cursor-pointer hover:shadow-md transition">
+                        <span class="text-2xl">💰</span>
+                        <div>
+                            <h3 class="font-bold">Salary Negotiation</h3>
+                            <p class="text-xs text-gray">Practice high-stakes conversations</p>
+                        </div>
+                    </div>
+                    <div class="card flex items-center gap-4 cursor-pointer hover:shadow-md transition">
+                        <span class="text-2xl">🧩</span>
+                        <div>
+                            <h3 class="font-bold">Technical Deep Dive</h3>
+                            <p class="text-xs text-gray">Coding & System Design</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Sessions -->
+            <div class="card">
+                <h2 class="text-lg font-bold mb-4">Recent Sessions</h2>
+                <div class="flex flex-col gap-4">
+                    <div class="flex justify-between items-center p-3 border-b border-gray-100">
+                        <div>
+                            <div class="font-bold">Behavioral Round - Amazon</div>
+                            <div class="text-xs text-gray">Yesterday • 15 mins</div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="badge badge-match">Score: 8/10</span>
+                            <button class="btn btn-secondary text-sm">View Feedback</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        function startInterview() {
+            alert("Starting AI Interview Session... (Camera/Mic permission would be requested)");
+        }
+    </script>
+</body>
+
+</html>

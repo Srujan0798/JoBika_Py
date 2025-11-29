@@ -4,871 +4,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Find your dream job with JoBika's AI-powered job search. Get personalized recommendations and match scores.">
-    <title>Find Jobs - JoBika</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family:Outfit:wght@300;400;500;600;700;800&display=swap"
+    <title>Find Jobs - JobSaathi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/main.css">
-    <link rel="stylesheet" href="assets/css/mobile.css">
-    <link rel="stylesheet" href="assets/css/hamburger.css">
-    <link rel="stylesheet" href="assets/css/guest-mode.css">
-    <style>
-        body {
-            background: var(--gray-50);
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            width: 250px;
-            background: white;
-            border-right: 1px solid var(--gray-200);
-            padding: 2rem 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .logo {
-            font-family: var(--font-display);
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-blue);
-            padding: 0 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .nav-menu {
-            list-style: none;
-        }
-
-        .nav-item {
-            margin-bottom: 0.5rem;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1.5rem;
-            color: var(--gray-700);
-            text-decoration: none;
-            transition: all var(--transition-base);
-        }
-
-        .nav-link:hover,
-        .nav-link.active {
-            background: var(--gray-100);
-            color: var(--primary-blue);
-        }
-
-        .main-content {
-            margin-left: 250px;
-            flex: 1;
-            padding: 2rem;
-        }
-
-        .search-bar {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 1rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 1rem;
-            border: 1px solid var(--gray-300);
-            border-radius: 0.5rem;
-            font-size: 1rem;
-        }
-
-        .filters {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .filter-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .filter-label {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-
-        .jobs-grid {
-            display: grid;
-            gap: 1.5rem;
-        }
-
-        .job-card {
-            background: white;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            transition: all var(--transition-base);
-            cursor: pointer;
-        }
-
-        .job-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .job-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 1rem;
-        }
-
-        .company-logo {
-            width: 56px;
-            height: 56px;
-            border-radius: 0.75rem;
-            background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: white;
-            font-size: 1.25rem;
-        }
-
-        .job-info {
-            flex: 1;
-            margin-left: 1rem;
-        }
-
-        .job-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 0.25rem;
-        }
-
-        .job-company {
-            color: var(--gray-600);
-            font-size: 0.875rem;
-        }
-
-        .job-meta {
-            display: flex;
-            gap: 1.5rem;
-            margin: 1rem 0;
-            font-size: 0.875rem;
-            color: var(--gray-600);
-        }
-
-        .skills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin: 1rem 0;
-        }
-
-        .skill-tag {
-            padding: 0.25rem 0.75rem;
-            background: var(--gray-100);
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            color: var(--gray-700);
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/index.css">
 </head>
 
 <body>
-    <script src="assets/js/session-manager.js"></script>
-    <aside class="sidebar">
-        <div class="logo">JoBika</div>
-        <ul class="nav-menu">
-            <li class="nav-item">
-                <a href="dashboard.html" class="nav-link">
-                    <span>📊</span>
-                    <span data-i18n="nav_dashboard">Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="jobs.html" class="nav-link active">
-                    <span>🔍</span>
-                    <span data-i18n="nav_jobs">Find Jobs</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="govt-jobs.html" class="nav-link">
-                    <span>🏛️</span>
-                    <span data-i18n="nav_govt">Govt Jobs</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="editor.html" class="nav-link">
-                    <span>📝</span>
-                    <span data-i18n="nav_editor">Resume Editor</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="tracker.html" class="nav-link">
-                    <span>📋</span>
-                    <span data-i18n="nav_tracker">Applications</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link" onclick="createJobAlert()">
-                    <span>🔔</span>
-                    <span data-i18n="nav_alerts">Job Alerts</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="settings.html" class="nav-link">
-                    <span>⚙️</span>
-                    <span data-i18n="nav_settings">Settings</span>
-                </a>
-            </li>
-        </ul>
-        <div style="padding: 1.5rem; border-top: 1px solid var(--gray-200);">
-            <button class="btn btn-secondary" onclick="window.languageManager.toggleLanguage()" style="width: 100%;">
-                🌐 English / हिंदी
-            </button>
-        </div>
-    </aside>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <span>🚀</span> JobSaathi
+            </div>
 
-    <main class="main-content">
-        <h1 style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 2rem;" data-i18n="hero_title">Find
-            Your Dream Job</h1>
+            <nav>
+                <a href="dashboard.html" class="nav-item">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="jobs.html" class="nav-item active">
+                    <span class="nav-icon">💼</span> Job Matches
+                </a>
+                <a href="tracker.html" class="nav-item">
+                    <span class="nav-icon">📌</span> Tracker
+                </a>
+                <div style="margin: 20px 0; border-top: 1px solid #E2E8F0;"></div>
+                <div class="text-gray text-sm font-bold mb-2 px-4">AI TOOLS</div>
+                <a href="chat.html" class="nav-item">
+                    <span class="nav-icon">🤖</span> Orion Coach
+                </a>
+                <a href="ats-checker.html" class="nav-item">
+                    <span class="nav-icon">📝</span> ATS Checker
+                </a>
+                <a href="skills.html" class="nav-item">
+                    <span class="nav-icon">🧠</span> Skill Advisor
+                </a>
+                <a href="interview.html" class="nav-item">
+                    <span class="nav-icon">🎤</span> Interview Prep
+                </a>
+                <a href="salary.html" class="nav-item">
+                    <span class="nav-icon">💰</span> Salary Predictor
+                </a>
+                <div style="margin: 20px 0; border-top: 1px solid #E2E8F0;"></div>
+                <a href="pricing.html" class="nav-item">
+                    <span class="nav-icon">💎</span> Premium
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <span class="nav-icon">⚙️</span> Settings
+                </a>
+            </nav>
+        </aside>
 
-        <div class="search-bar">
-            <input type="text" class="search-input" placeholder="🔍 Search by job title, company, or skills..."
-                id="searchInput" data-i18n="search_placeholder">
-        </div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="mb-8">
+                <h1 class="text-2xl font-bold mb-2">Find Your Dream Job</h1>
+                <p class="text-gray">AI-matched opportunities based on your profile.</p>
+            </header>
 
-        <div class="filters">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-                <div class="filter-group">
-                    <label class="filter-label">Location</label>
-                    <select class="input">
-                        <option>All Locations</option>
+            <!-- Search & Filter -->
+            <div class="card mb-8">
+                <div class="flex gap-4 mb-4">
+                    <input type="text" id="searchInput" class="flex-1 p-3 border rounded-lg"
+                        placeholder="🔍 Search by title, company, or skills...">
+                    <button class="btn btn-primary" onclick="renderJobs()">Search</button>
+                </div>
+
+                <div class="grid grid-cols-4 gap-4">
+                    <select class="p-2 border rounded-lg" id="locationFilter" onchange="renderJobs()">
+                        <option value="">All Locations</option>
                         <option>Bangalore</option>
-                        <option>Hyderabad</option>
                         <option>Mumbai</option>
-                        <option>Pune</option>
                         <option>Delhi/NCR</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label class="filter-label">Experience</label>
-                    <select class="input">
-                        <option>All Levels</option>
-                        <option>0-2 years</option>
-                        <option>2-5 years</option>
-                        <option>5-10 years</option>
-                        <option>10+ years</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label class="filter-label">Job Type</label>
-                    <select class="input">
-                        <option>All Types</option>
-                        <option>Full-time</option>
-                        <option>Part-time</option>
-                        <option>Contract</option>
                         <option>Remote</option>
                     </select>
-                </div>
-
-                <div class="filter-group">
-                    <label class="filter-label">Min Match Score</label>
-                    <select class="input">
-                        <option>All Jobs</option>
+                    <select class="p-2 border rounded-lg" id="expFilter" onchange="renderJobs()">
+                        <option value="">Experience</option>
+                        <option>0-2 Years</option>
+                        <option>2-5 Years</option>
+                        <option>5+ Years</option>
+                    </select>
+                    <select class="p-2 border rounded-lg" id="typeFilter" onchange="renderJobs()">
+                        <option value="">Job Type</option>
+                        <option>Full-time</option>
+                        <option>Contract</option>
+                        <option>Internship</option>
+                    </select>
+                    <select class="p-2 border rounded-lg" id="matchFilter" onchange="renderJobs()">
+                        <option value="">Min Match Score</option>
                         <option>90%+</option>
                         <option>80%+</option>
                         <option>70%+</option>
-                        <option>60%+</option>
                     </select>
-                </div>
-
-                <div class="filter-group">
-                    <label class="filter-label" data-i18n="filter_visa">Visa Sponsorship</label>
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label style="display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" id="filterH1B" onchange="renderJobs()"> H1B Sponsorship
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" id="filterGreenCard" onchange="renderJobs()"> Green Card Support
-                        </label>
-                    </div>
                 </div>
             </div>
-        </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <p style="color: var(--gray-600);"><span id="jobCount">0</span> jobs found</p>
-            <select class="input" style="width: auto;">
-                <option>Sort by: Best Match</option>
-                <option>Sort by: Most Recent</option>
-                <option>Sort by: Salary (High to Low)</option>
-            </select>
-        </div>
-        }
+            <!-- Job Feed -->
+            <div id="jobsGrid" class="flex flex-col gap-4">
+                <!-- Populated by JS -->
+                <div class="text-center py-8 text-gray">Loading jobs...</div>
+            </div>
+        </main>
+    </div>
 
-        .filter-group {
-        margin-bottom: 1.5rem;
-        }
+    <script src="assets/js/app.js"></script>
+    <script>
+        // Mock Data for Demo
+        const MOCK_JOBS = [
+            {
+                id: 1,
+                title: "Senior React Developer",
+                company: "Swiggy",
+                location: "Bangalore",
+                salary: "₹25-35 LPA",
+                match: 94,
+                skills: ["React", "Node.js", "AWS"],
+                logo: "S",
+                posted: "2h ago"
+            },
+            {
+                id: 2,
+                title: "Product Manager",
+                company: "Zomato",
+                location: "Gurgaon",
+                salary: "₹18-28 LPA",
+                match: 87,
+                skills: ["Product Strategy", "Analytics", "Agile"],
+                logo: "Z",
+                posted: "5h ago"
+            },
+            {
+                id: 3,
+                title: "Data Scientist",
+                company: "Flipkart",
+                location: "Bangalore",
+                salary: "₹30-45 LPA",
+                match: 91,
+                skills: ["Python", "ML", "SQL"],
+                logo: "F",
+                posted: "1d ago"
+            },
+            {
+                id: 4,
+                title: "Frontend Engineer",
+                company: "Cred",
+                location: "Bangalore",
+                salary: "₹20-30 LPA",
+                match: 82,
+                skills: ["Vue.js", "JavaScript", "CSS"],
+                logo: "C",
+                posted: "1d ago"
+            }
+        ];
 
-        .filter-label {
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        display: block;
-        }
+        function renderJobs() {
+            const grid = document.getElementById('jobsGrid');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const location = document.getElementById('locationFilter').value;
 
-        .jobs-grid {
-        display: grid;
-        gap: 1.5rem;
-        }
+            const filtered = MOCK_JOBS.filter(job => {
+                const matchesSearch = job.title.toLowerCase().includes(search) || job.company.toLowerCase().includes(search);
+                const matchesLoc = location ? job.location.includes(location) : true;
+                return matchesSearch && matchesLoc;
+            });
 
-        .job-card {
-        background: white;
-        border-radius: 1rem;
-        padding: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        transition: all var(--transition-base);
-        cursor: pointer;
-        }
-
-        .job-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        transform: translateY(-2px);
-        }
-
-        .job-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: start;
-        margin-bottom: 1rem;
-        }
-
-        .company-logo {
-        width: 56px;
-        height: 56px;
-        border-radius: 0.75rem;
-        background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        color: white;
-        font-size: 1.25rem;
-        }
-
-        .job-info {
-        flex: 1;
-        margin-left: 1rem;
-        }
-
-        .job-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: var(--gray-900);
-        margin-bottom: 0.25rem;
-        }
-
-        .job-company {
-        color: var(--gray-600);
-        font-size: 0.875rem;
-        }
-
-        .job-meta {
-        display: flex;
-        gap: 1.5rem;
-        margin: 1rem 0;
-        font-size: 0.875rem;
-        color: var(--gray-600);
-        }
-
-        .skills {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin: 1rem 0;
-        }
-
-        .skill-tag {
-        padding: 0.25rem 0.75rem;
-        background: var(--gray-100);
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        color: var(--gray-700);
-        }
-        </style>
-        </head>
-
-        <body>
-            <aside class="sidebar">
-                <div class="logo">JoBika</div>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="dashboard.html" class="nav-link">
-                            <span>📊</span>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="jobs.html" class="nav-link active">
-                            <span>🔍</span>
-                            <span>Find Jobs</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="editor.html" class="nav-link">
-                            <span>📝</span>
-                            <span>Resume Editor</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="tracker.html" class="nav-link">
-                            <span>📋</span>
-                            <span>Applications</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span>⚙️</span>
-                            <span>Settings</span>
-                        </a>
-                    </li>
-                </ul>
-            </aside>
-
-            <main class="main-content">
-                <h1 style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 2rem;">Find Your Dream Job
-                </h1>
-
-                <div class="search-bar">
-                    <input type="text" class="search-input" placeholder="🔍 Search by job title, company, or skills..."
-                        id="searchInput">
-                </div>
-
-                <div class="filters">
-                    <div
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-                        <div class="filter-group">
-                            <label class="filter-label" data-i18n="filter_location">Location</label>
-                            <select class="input">
-                                <option>All Locations</option>
-                                <option>Bangalore</option>
-                                <option>Hyderabad</option>
-                                <option>Mumbai</option>
-                                <option>Pune</option>
-                                <option>Delhi/NCR</option>
-                            </select>
-                        </div>
-
-                        <div class="filter-group">
-                            <label class="filter-label" data-i18n="filter_exp">Experience</label>
-                            <select class="input">
-                                <option>All Levels</option>
-                                <option>0-2 years</option>
-                                <option>2-5 years</option>
-                                <option>5-10 years</option>
-                                <option>10+ years</option>
-                            </select>
-                        </div>
-
-                        <div class="filter-group">
-                            <label class="filter-label">Job Type</label>
-                            <select class="input">
-                                <option>All Types</option>
-                                <option>Full-time</option>
-                                <option>Part-time</option>
-                                <option>Contract</option>
-                                <option>Remote</option>
-                            </select>
-                        </div>
-
-                        <div class="filter-group">
-                            <label class="filter-label">Min Match Score</label>
-                            <select class="input">
-                                <option>All Jobs</option>
-                                <option>90%+</option>
-                                <option>80%+</option>
-                                <option>70%+</option>
-                                <option>60%+</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <p style="color: var(--gray-600);"><span id="jobCount">0</span> jobs found</p>
-                    <select class="input" style="width: auto;">
-                        <option>Sort by: Best Match</option>
-                        <option>Sort by: Most Recent</option>
-                        <option>Sort by: Salary (High to Low)</option>
-                    </select>
-                </div>
-
-                <div class="jobs-grid" id="jobsGrid"></div>
-            </main>
-
-            <script src="assets/js/session-manager.js"></script>
-            <script src="assets/js/mobile-nav.js"></script>
-            <script src="assets/js/language-manager.js"></script>
-            <script src="assets/js/visa-sponsorship-helper.js"></script>
-            <script src="assets/js/job-matching-engine.js"></script>
-            <script src="assets/js/app.js"></script>
-            <script>
-                function renderJobs() {
-                    const jobsGrid = document.getElementById('jobsGrid');
-                    const jobCount = document.getElementById('jobCount');
-
-                    jobCount.textContent = AppState.jobs.length;
-
-                    jobsGrid.innerHTML = AppState.jobs.map(job => {
-                        // Apply Visa Filters
-                        const h1bFilter = document.getElementById('filterH1B').checked;
-                        const gcFilter = document.getElementById('filterGreenCard').checked;
-
-                        if (h1bFilter || gcFilter) {
-                            const visaHelper = new VisaSponsorshipHelper();
-                            const sponsorship = visaHelper.checkSponsorship(job.company);
-
-                            if (h1bFilter && !sponsorship.h1b) return '';
-                            if (gcFilter && !sponsorship.greenCard) return '';
-                        }
-
-                        return `
-                <div class="job-card" onclick="viewJobDetails(${job.id})">
-                    <div class="job-header">
-                        <div class="company-logo">${job.company.charAt(0)}</div>
-                        <div class="job-info">
-                            <div class="job-title">${job.title}</div>
-                            <div class="job-company">${job.company}</div>
-                        </div>
-                        <div class="match-score ${getMatchScoreClass(job.matchScore)}">${job.matchScore}% Match</div>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>📍 ${job.location}</span>
-                        <span>💰 ${job.salary}</span>
-                        <span>🕒 Posted ${job.posted}</span>
-                    </div>
-                    
-                    <div class="skills">
-                        ${job.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
-                    </div>
-                    
-                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                        <button class="btn btn-primary" onclick="event.stopPropagation(); quickApply(${job.id})" data-i18n="quick_apply">Quick Apply</button>
-                        <button class="btn btn-secondary" onclick="event.stopPropagation(); saveJob(${job.id})" data-i18n="btn_save">Save</button>
-                        <button class="btn btn-secondary" onclick="event.stopPropagation(); generateCoverLetterUI(${job.id})">Cover Letter</button>
-                        <button class="btn btn-secondary" onclick="event.stopPropagation(); getInterviewPrepUI(${job.id})">Interview Prep</button>
-                        <button class="btn btn-secondary" onclick="event.stopPropagation(); getSalaryInsightsUI('${job.title}', '${job.location}')">Salary Insights</button>
-                        <button class="btn btn-secondary" onclick="event.stopPropagation(); customizeResumeUI(${job.id})">Customize Resume</button>
-                    </div>
-                </div>
-            `}).join('');
-
-                    // Re-apply language translations
-                    if (window.languageManager) {
-                        window.languageManager.applyLanguage(window.languageManager.currentLang);
-                    }
-                }
-
-                function viewJobDetails(jobId) {
-                    const job = AppState.jobs.find(j => j.id === jobId);
-                    alert(`Job Details:\n\n${job.title}\n${job.company}\n\nMatch Score: ${job.matchScore}%\n\nThis would open a detailed view with full job description, requirements, and company info.`);
-                }
-
-                async function quickApply(jobId) {
-                    const btn = event.target;
-                    const originalText = btn.textContent;
-
-                    if (sessionManager.isGuest) {
-                        // Show realistic progress modal
-                        const modal = document.createElement('div');
-                        modal.className = 'auth-modal-overlay';
-                        modal.style.display = 'flex';
-                        modal.style.zIndex = '10000';
-                        modal.innerHTML = `
-                            <div class="auth-modal-container" style="text-align: center;">
-                                <div style="font-size: 3rem; margin-bottom: 1rem;">🤖</div>
-                                <h2 style="margin-bottom: 1rem;">AI is applying for you...</h2>
-                                <div style="background: #f3f4f6; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 1.5rem;">
-                                    <div id="applyProgress" style="background: var(--primary-blue); width: 0%; height: 100%; transition: width 0.5s;"></div>
+            grid.innerHTML = filtered.map(job => `
+                <div class="card job-card animate-fade-in">
+                    <div class="flex gap-4 w-full">
+                        <div class="company-logo">${job.logo}</div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-bold text-lg">${job.title}</h3>
+                                    <p class="text-gray text-sm mb-2">${job.company} • ${job.location} • ${job.salary}</p>
                                 </div>
-                                <p id="applyStatus" style="color: var(--gray-600);">Analyzing job requirements...</p>
-                            </div>
-                        `;
-                        document.body.appendChild(modal);
-
-                        // Simulate steps
-                        const steps = [
-                            { pct: 30, text: 'Customizing resume...' },
-                            { pct: 60, text: 'Generating cover letter...' },
-                            { pct: 90, text: 'Submitting application...' },
-                            { pct: 100, text: 'Application Sent! (Demo)' }
-                        ];
-
-                        for (let step of steps) {
-                            await new Promise(r => setTimeout(r, 800));
-                            const progress = document.getElementById('applyProgress');
-                            const status = document.getElementById('applyStatus');
-                            if (progress && status) {
-                                progress.style.width = step.pct + '%';
-                                status.textContent = step.text;
-                            }
-                        }
-
-                        await new Promise(r => setTimeout(r, 1000));
-                        modal.remove();
-
-                        btn.textContent = 'Applied (Demo) ✅';
-                        btn.classList.remove('btn-primary');
-                        btn.classList.add('btn-success');
-                        btn.disabled = true;
-                        return;
-                    }
-
-                    btn.disabled = true;
-                    btn.textContent = 'Applying...';
-
-                    try {
-                        await window.JoBikaAPI.createApplication(jobId);
-                        btn.textContent = 'Applied ✅';
-                        btn.classList.remove('btn-primary');
-                        btn.classList.add('btn-success');
-                        alert('Application submitted successfully! Our AI has customized your resume for this role.');
-                    } catch (error) {
-                        console.error('Application failed:', error);
-                        alert('Failed to apply: ' + error.message);
-                        btn.textContent = originalText;
-                        btn.disabled = false;
-                    }
-                }
-
-                async function generateCoverLetterUI(jobId) {
-                    const btn = event.target;
-                    const originalText = btn.textContent;
-                    btn.disabled = true;
-                    btn.textContent = 'Generating...';
-
-                    try {
-                        const result = await window.JoBikaAPI.generateCoverLetter(jobId);
-                        console.log('Cover Letter:', result);
-
-                        // Create a simple modal to show the cover letter
-                        const modal = document.createElement('div');
-                        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000;';
-                        modal.innerHTML = `
-                            <div style="background:white;padding:2rem;border-radius:1rem;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;">
-                                <h2 style="margin-bottom:1rem;">Generated Cover Letter</h2>
-                                <pre style="white-space:pre-wrap;font-family:inherit;background:#f8f9fa;padding:1rem;border-radius:0.5rem;">${result.cover_letter}</pre>
-                                <button class="btn btn-primary" onclick="this.parentElement.parentElement.remove()" style="margin-top:1rem;">Close</button>
-                            </div>
-                        `;
-                        document.body.appendChild(modal);
-                    } catch (error) {
-                        console.error('Failed to generate cover letter:', error);
-                        alert('Failed to generate cover letter: ' + error.message);
-                        btn.textContent = originalText;
-                        btn.disabled = false;
-                    }
-                }
-
-                function createJobAlert() {
-                    if (sessionManager.isGuest) {
-                        // Show realistic toast
-                        const toast = document.createElement('div');
-                        toast.style.cssText = 'position:fixed;bottom:2rem;right:2rem;background:#10b981;color:white;padding:1rem 2rem;border-radius:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:10000;animation:slideIn 0.3s forwards;display:flex;align-items:center;gap:0.5rem;';
-                        toast.innerHTML = `
-                            <span style="font-size:1.25rem;">🔔</span>
-                            <div>
-                                <div style="font-weight:600;">Alert Created!</div>
-                                <div style="font-size:0.875rem;">We'll notify you of new matches. (Demo)</div>
-                            </div>
-                        `;
-                        document.body.appendChild(toast);
-
-                        // Add animation styles if not present
-                        if (!document.getElementById('toastStyles')) {
-                            const style = document.createElement('style');
-                            style.id = 'toastStyles';
-                            style.textContent = `
-                                @keyframes slideIn { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-                                @keyframes slideOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(100%); opacity: 0; } }
-                            `;
-                            document.head.appendChild(style);
-                        }
-
-                        setTimeout(() => {
-                            toast.style.animation = 'slideOut 0.3s forwards';
-                            setTimeout(() => toast.remove(), 300);
-                        }, 3000);
-                        return;
-                    }
-                    alert('Job alerts feature coming soon for logged in users!');
-                }
-
-                async function getInterviewPrepUI(jobId) {
-                    const btn = event.target;
-                    const originalText = btn.textContent;
-                    btn.disabled = true;
-                    btn.textContent = 'Loading...';
-
-                    try {
-                        const result = await window.JoBikaAPI.getInterviewPrep(jobId);
-                        console.log('Interview Prep:', result);
-
-                        // Create a simple modal
-                        const modal = document.createElement('div');
-                        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000;';
-                        modal.innerHTML = `
-                            <div style="background:white;padding:2rem;border-radius:1rem;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;">
-                                <h2 style="margin-bottom:1rem;">Interview Prep Guide</h2>
-                                
-                                <h3 style="font-size:1.1rem;margin-top:1rem;">Likely Questions</h3>
-                                <ul style="list-style:disc;padding-left:1.5rem;margin-bottom:1rem;">
-                                    ${result.likely_questions.map(q => `
-                                        <li style="margin-bottom:0.5rem;">
-                                            <strong>${q.question}</strong><br>
-                                            <span style="font-size:0.9rem;color:#666;">Tip: ${q.tip}</span>
-                                        </li>
-                                    `).join('')}
-                                </ul>
-
-                                <h3 style="font-size:1.1rem;margin-top:1rem;">Preparation Tips</h3>
-                                <ul style="list-style:disc;padding-left:1.5rem;">
-                                    ${result.preparation_tips.preparation.map(t => `<li>${t}</li>`).join('')}
-                                </ul>
-
-                                <button class="btn btn-primary" onclick="this.parentElement.parentElement.remove()" style="margin-top:1rem;">Close</button>
-                            </div>
-                        `;
-                        document.body.appendChild(modal);
-                    } catch (error) {
-                        alert('Failed to get interview prep: ' + error.message);
-                    } finally {
-                        btn.textContent = originalText;
-                        btn.disabled = false;
-                    }
-                }
-
-                async function getSalaryInsightsUI(title, location) {
-                    const btn = event.target;
-                    const originalText = btn.textContent;
-                    btn.disabled = true;
-                    btn.textContent = 'Loading...';
-
-                    try {
-                        const result = await window.JoBikaAPI.getSalaryInsights(title, location, 2); // Default 2 years exp
-                        console.log('Salary Insights:', result);
-
-                        // Create a simple modal
-                        const modal = document.createElement('div');
-                        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000;';
-                        modal.innerHTML = `
-                            <div style="background:white;padding:2rem;border-radius:1rem;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;">
-                                <h2 style="margin-bottom:1rem;">Salary Insights: ${result.job_title}</h2>
-                                <p style="color:#666;margin-bottom:1rem;">Location: ${result.location}</p>
-                                
-                                <div style="background:#f0f9ff;padding:1rem;border-radius:0.5rem;margin-bottom:1rem;">
-                                    <h3 style="font-size:1.1rem;margin-bottom:0.5rem;">Estimated Salary Range</h3>
-                                    <div style="font-size:1.5rem;font-weight:bold;color:#0284c7;">
-                                        $${result.salary_range.min.toLocaleString()} - $${result.salary_range.max.toLocaleString()}
-                                    </div>
-                                    <div style="font-size:0.9rem;color:#666;">Median: $${result.salary_range.median.toLocaleString()}</div>
+                                <div class="flex flex-col items-end gap-2">
+                                    <span class="badge badge-match">${job.match}% Match</span>
+                                    <span class="text-xs text-gray">${job.posted}</span>
                                 </div>
-
-                                <h3 style="font-size:1.1rem;margin-top:1rem;">Market Trends</h3>
-                                <ul style="list-style:none;padding:0;">
-                                    <li style="margin-bottom:0.5rem;">📈 Demand: <strong>${result.market_insights.demand}</strong></li>
-                                    <li style="margin-bottom:0.5rem;">🚀 Growth: <strong>${result.market_insights.growth_trend}</strong></li>
-                                    <li style="margin-bottom:0.5rem;">⚔️ Competition: <strong>${result.market_insights.competition}</strong></li>
-                                </ul>
-                                
-                                <h3 style="font-size:1.1rem;margin-top:1rem;">Top Paying Skills</h3>
-                                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem;">
-                                    ${result.market_insights.skills_premium.map(s => `<span class="skill-tag">${s}</span>`).join('')}
-                                </div>
-
-                                <button class="btn btn-primary" onclick="this.parentElement.parentElement.remove()" style="margin-top:1.5rem;">Close</button>
                             </div>
-                        `;
-                        document.body.appendChild(modal);
-                    } catch (error) {
-                        alert('Failed to get salary insights: ' + error.message);
-                    } finally {
-                        btn.textContent = originalText;
-                        btn.disabled = false;
-                    }
-                }
+                            
+                            <div class="flex gap-2 mb-4">
+                                ${job.skills.map(s => `<span class="text-xs bg-gray-100 px-2 py-1 rounded">${s}</span>`).join('')}
+                            </div>
 
-                async function customizeResumeUI(jobId) {
-                    const btn = event.target;
-                    const originalText = btn.textContent;
-                    btn.disabled = true;
-                    btn.textContent = 'Customizing...';
+                            <div class="flex gap-3">
+                                <button class="btn btn-primary text-sm" onclick="quickApply(${job.id})">Quick Apply</button>
+                                <button class="btn btn-secondary text-sm">View Details</button>
+                                <button class="btn btn-secondary text-sm">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-                    try {
-                        const result = await window.JoBikaAPI.customizeResume(jobId);
-                        console.log('Customized Resume:', result);
+        function quickApply(id) {
+            alert(`Applying to job ${id}... (This would trigger the Auto-Apply Agent)`);
+        }
 
-                        alert(`Resume customized successfully!\n\nVersion: ${result.versionName}\nMatch Score: ${result.customized.match_score}%\n\nView it in the Resume Versions tab.`);
-                        // Optionally redirect to resume-versions.html
-                        if (confirm('View customized resume now?')) {
-                            window.location.href = 'resume-versions.html';
-                        }
-                    } catch (error) {
-                        alert('Failed to customize resume: ' + error.message);
-                    } finally {
-                        btn.textContent = originalText;
-                        btn.disabled = false;
-                    }
-                }
-
-                async function saveJob(jobId) {
-                    // Check if guest mode
-                    if (sessionManager.isGuest) {
-                        sessionManager.showLoginPrompt('save jobs');
-                        return;
-                    }
-
-                    const btn = event.target;
-                    const originalText = btn.textContent;
-                    btn.disabled = true;
-                    btn.textContent = 'Saving...';
-
-                    try {
-                        await window.JoBikaAPI.saveJob(jobId);
-                        btn.textContent = 'Saved ✅';
-                        btn.classList.remove('btn-secondary');
-                        btn.classList.add('btn-success');
-                    } catch (error) {
-                        alert('Failed to save job: ' + error.message);
-                        btn.textContent = originalText;
-                        btn.disabled = false;
-                    }
-                }
-
-                // Initialize
-                document.addEventListener('DOMContentLoaded', () => {
-                    // Load mock jobs if AppState.jobs is empty
-                    if (!AppState.jobs || AppState.jobs.length === 0) {
-                        window.JoBikaAPI.loadMockJobs();
-                    }
-                    renderJobs();
-                });
-            </script>
-        </body>
+        // Initial Render
+        document.addEventListener('DOMContentLoaded', renderJobs);
+    </script>
+</body>
 
 </html>

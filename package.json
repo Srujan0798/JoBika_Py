@@ -1,0 +1,31 @@
+{
+  "name": "jobika_pyt",
+  "version": "1.0.0",
+  "description": "> **Status**: ✅ Working with SQLite | 🔄 PostgreSQL support coming soon",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Srujan0798/JoBika_Pyt.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Srujan0798/JoBika_Pyt/issues"
+  },
+  "homepage": "https://github.com/Srujan0798/JoBika_Pyt#readme",
+  "dependencies": {
+    "body-parser": "^2.2.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "openai": "^6.9.1",
+    "puppeteer": "^24.31.0"
+  }
+}

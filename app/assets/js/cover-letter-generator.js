@@ -15,25 +15,22 @@ class CoverLetterGenerator {
      * @param {Object} job - Target job details
      * @returns {Promise<string>} Generated cover letter
      */
-    async generateCoverLetter(userProfile, job) {
+    async generateCoverLetter(userProfile, job, tone = 'professional') {
         try {
-            const response = await fetch(this.apiEndpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    profile: userProfile,
-                    job: job,
-                    tone: 'professional',
-                    format: 'indian'
-                })
-            });
+            // Try AI generation first
+            if (window.JoBikaAPI && window.JoBikaAPI.generateAICoverLetter) {
+                const result = await window.JoBikaAPI.generateAICoverLetter(userProfile, job, {
+                    name: job.company,
+                    about: job.about || 'A leading company.',
+                    recentNews: job.recentNews || ''
+                });
 
-            if (response.ok) {
-                const data = await response.json();
-                return data.coverLetter;
+                if (result && result.cover_letter) {
+                    return result.cover_letter;
+                }
             }
         } catch (error) {
-            console.log('Using fallback cover letter generation');
+            console.log('Using fallback cover letter generation:', error);
         }
 
         // Fallback to template-based generation

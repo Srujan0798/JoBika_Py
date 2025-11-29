@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Predictor - JobSaathi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/index.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <span>🚀</span> JobSaathi
+            </div>
+
+            <nav>
+                <a href="dashboard.html" class="nav-item">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="jobs.html" class="nav-item">
+                    <span class="nav-icon">💼</span> Job Matches
+                </a>
+                <a href="tracker.html" class="nav-item">
+                    <span class="nav-icon">📌</span> Tracker
+                </a>
+                <div style="margin: 20px 0; border-top: 1px solid #E2E8F0;"></div>
+                <div class="text-gray text-sm font-bold mb-2 px-4">AI TOOLS</div>
+                <a href="chat.html" class="nav-item">
+                    <span class="nav-icon">🤖</span> Orion Coach
+                </a>
+                <a href="ats-checker.html" class="nav-item">
+                    <span class="nav-icon">📝</span> ATS Checker
+                </a>
+                <a href="skills.html" class="nav-item">
+                    <span class="nav-icon">🧠</span> Skill Advisor
+                </a>
+                <a href="interview.html" class="nav-item">
+                    <span class="nav-icon">🎤</span> Interview Prep
+                </a>
+                <a href="salary.html" class="nav-item active">
+                    <span class="nav-icon">💰</span> Salary Predictor
+                </a>
+                <div style="margin: 20px 0; border-top: 1px solid #E2E8F0;"></div>
+                <a href="pricing.html" class="nav-item">
+                    <span class="nav-icon">💎</span> Premium
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <span class="nav-icon">⚙️</span> Settings
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="mb-8">
+                <h1 class="text-2xl font-bold mb-2">Salary Predictor</h1>
+                <p class="text-gray">Know your worth with AI-driven market data.</p>
+            </header>
+
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Input & Main Stat -->
+                <div class="col-span-2 flex flex-col gap-6">
+                    <div class="card">
+                        <div class="flex gap-4 mb-6">
+                            <input type="text" placeholder="Job Title (e.g. Senior Product Manager)"
+                                class="flex-1 p-3 border rounded-lg">
+                            <input type="text" placeholder="Location (e.g. Bangalore)"
+                                class="flex-1 p-3 border rounded-lg">
+                            <button class="btn btn-primary">Predict</button>
+                        </div>
+
+                        <div class="text-center py-8">
+                            <h2 class="text-gray mb-2">Estimated Market Salary</h2>
+                            <div class="text-4xl font-bold text-primary mb-2" style="color: var(--primary-color);">
+                                ₹25,00,000 - ₹35,00,000</div>
+                            <p class="text-sm text-gray">per annum for Senior Product Manager in Bangalore</p>
+                        </div>
+
+                        <!-- Range Bar -->
+                        <div class="relative h-4 bg-gray-100 rounded-full mt-4 mb-8 mx-8">
+                            <div class="absolute top-0 left-[20%] right-[20%] h-full bg-blue-200 rounded-full"></div>
+                            <div class="absolute top-[-8px] left-[40%] w-4 h-8 bg-primary rounded border-2 border-white"
+                                style="background: var(--primary-color);"></div>
+                            <div class="absolute top-6 left-0 text-xs text-gray">₹15L</div>
+                            <div class="absolute top-6 right-0 text-xs text-gray">₹50L</div>
+                            <div class="absolute top-6 left-[40%] text-xs font-bold transform -translate-x-1/2">You
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Factors -->
+                    <div class="card">
+                        <h3 class="font-bold mb-4">Salary Factors</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <div class="text-sm text-gray">Experience</div>
+                                <div class="font-bold text-green-600">+ ₹5L (High Impact)</div>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <div class="text-sm text-gray">Skills (React, Node)</div>
+                                <div class="font-bold text-green-600">+ ₹3L (Medium Impact)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Negotiation Tips -->
+                <div class="card bg-gradient-to-br from-orange-50 to-white border-orange-100">
+                    <h3 class="font-bold mb-4 flex items-center gap-2">
+                        <span>💡</span> Negotiation Tips
+                    </h3>
+                    <ul class="space-y-4 text-sm">
+                        <li class="flex gap-3">
+                            <span class="font-bold text-primary">1.</span>
+                            <p>Don't share your current CTC first. Ask for their budget range.</p>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="font-bold text-primary">2.</span>
+                            <p>Highlight your "High Impact" skills identified in the analysis.</p>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="font-bold text-primary">3.</span>
+                            <p>Use the "Orion Coach" to practice your negotiation script.</p>
+                        </li>
+                    </ul>
+                    <button class="btn btn-secondary w-full mt-6">Practice Negotiation</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+</body>
+
+</html>

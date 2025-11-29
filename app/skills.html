@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Advisor - JobSaathi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/index.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <span>🚀</span> JobSaathi
+            </div>
+
+            <nav>
+                <a href="dashboard.html" class="nav-item">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="jobs.html" class="nav-item">
+                    <span class="nav-icon">💼</span> Job Matches
+                </a>
+                <a href="tracker.html" class="nav-item">
+                    <span class="nav-icon">📌</span> Tracker
+                </a>
+                <div style="margin: 20px 0; border-top: 1px solid #E2E8F0;"></div>
+                <div class="text-gray text-sm font-bold mb-2 px-4">AI TOOLS</div>
+                <a href="chat.html" class="nav-item">
+                    <span class="nav-icon">🤖</span> Orion Coach
+                </a>
+                <a href="ats-checker.html" class="nav-item">
+                    <span class="nav-icon">📝</span> ATS Checker
+                </a>
+                <a href="skills.html" class="nav-item active">
+                    <span class="nav-icon">🧠</span> Skill Advisor
+                </a>
+                <a href="interview.html" class="nav-item">
+                    <span class="nav-icon">🎤</span> Interview Prep
+                </a>
+                <a href="salary.html" class="nav-item">
+                    <span class="nav-icon">💰</span> Salary Predictor
+                </a>
+                <div style="margin: 20px 0; border-top: 1px solid #E2E8F0;"></div>
+                <a href="pricing.html" class="nav-item">
+                    <span class="nav-icon">💎</span> Premium
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <span class="nav-icon">⚙️</span> Settings
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="mb-8">
+                <h1 class="text-2xl font-bold mb-2">Skill Advisor</h1>
+                <p class="text-gray">Identify gaps and master the skills you need for your dream job.</p>
+            </header>
+
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Main Analysis -->
+                <div class="col-span-2 flex flex-col gap-6">
+                    <!-- Target Role -->
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-bold">Target Role Analysis</h2>
+                            <button class="btn btn-secondary text-sm">Change Role</button>
+                        </div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="bg-blue-100 p-3 rounded-lg text-2xl">🎯</div>
+                            <div>
+                                <h3 class="font-bold">Senior Software Engineer</h3>
+                                <p class="text-gray text-sm">Market Demand: High 🔥</p>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-2.5 mb-2">
+                            <div class="bg-primary h-2.5 rounded-full"
+                                style="width: 75%; background: var(--primary-color);"></div>
+                        </div>
+                        <p class="text-sm text-gray text-right">75% Match</p>
+                    </div>
+
+                    <!-- Skill Gaps -->
+                    <div class="card">
+                        <h2 class="text-lg font-bold mb-4">Critical Skill Gaps</h2>
+                        <div class="flex flex-col gap-4">
+                            <div
+                                class="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-100">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xl">☁️</span>
+                                    <div>
+                                        <div class="font-bold">AWS / Cloud Services</div>
+                                        <div class="text-xs text-gray">Required in 80% of target jobs</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary text-sm">Start Learning</button>
+                            </div>
+                            <div
+                                class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-100">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xl">🐳</span>
+                                    <div>
+                                        <div class="font-bold">Docker / Kubernetes</div>
+                                        <div class="text-xs text-gray">Required in 60% of target jobs</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary text-sm">Add to Plan</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Learning Roadmap -->
+                <div class="card">
+                    <h2 class="text-lg font-bold mb-4">Learning Roadmap</h2>
+                    <div class="relative border-l-2 border-gray-200 ml-3 pl-6 space-y-8">
+                        <div class="relative">
+                            <span
+                                class="absolute -left-[33px] bg-green-500 w-4 h-4 rounded-full border-4 border-white"></span>
+                            <h3 class="font-bold">React Advanced Patterns</h3>
+                            <p class="text-xs text-gray">Completed on Nov 15</p>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute -left-[33px] bg-primary w-4 h-4 rounded-full border-4 border-white"
+                                style="background: var(--primary-color);"></span>
+                            <h3 class="font-bold">System Design</h3>
+                            <p class="text-xs text-gray">In Progress (40%)</p>
+                        </div>
+                        <div class="relative">
+                            <span
+                                class="absolute -left-[33px] bg-gray-300 w-4 h-4 rounded-full border-4 border-white"></span>
+                            <h3 class="font-bold">Cloud Architecture</h3>
+                            <p class="text-xs text-gray">Locked</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+</body>
+
+</html>

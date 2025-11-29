@@ -1,5 +1,7 @@
-// API Configuration - use relative URL to work with current server
-const API_BASE_URL = '/api';
+// API Configuration
+const API_BASE_URL = (window.location.protocol === 'file:' || window.location.hostname === 'localhost')
+    ? 'http://localhost:3000/api'
+    : '/api';
 
 // Global app state
 const AppState = {
@@ -394,7 +396,8 @@ function loadMockJobs() {
             industry: 'technology',
             isRemote: false,
             jobType: 'full-time',
-            description: 'Looking for an experienced full-stack developer to join our Bangalore team...'
+            description: 'Looking for an experienced full-stack developer to join our Bangalore team...',
+            url: 'https://careers.google.com/jobs/results/'
         },
         {
             id: 2,
@@ -414,7 +417,9 @@ function loadMockJobs() {
             companySize: 'large',
             industry: 'technology',
             isRemote: false,
-            jobType: 'full-time'
+            isRemote: false,
+            jobType: 'full-time',
+            url: 'https://careers.microsoft.com/us/en'
         },
         {
             id: 3,
@@ -434,7 +439,9 @@ function loadMockJobs() {
             companySize: 'large',
             industry: 'ecommerce',
             isRemote: false,
-            jobType: 'full-time'
+            isRemote: false,
+            jobType: 'full-time',
+            url: 'https://www.flipkartcareers.com/'
         },
         {
             id: 4,
@@ -454,7 +461,9 @@ function loadMockJobs() {
             companySize: 'large',
             industry: 'ecommerce',
             isRemote: false,
-            jobType: 'full-time'
+            isRemote: false,
+            jobType: 'full-time',
+            url: 'https://www.amazon.jobs/en/'
         },
         {
             id: 5,
@@ -691,8 +700,50 @@ window.JoBikaAPI = {
     loadMockApplications,
     getState: () => AppState,
     toggleNotifications,
-    markAllRead
-};
+    toggleNotifications,
+    markAllRead,
+    smartApply,
+    generateAICoverLetter,
+    generateAIInterviewPrep,
+    getAnalytics,
+    getCommunityGroups,
+    findReferrals
+}
+
+// Analytics
+async function getAnalytics(userId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/analytics/insights?userId=${userId}`);
+        if (!response.ok) throw new Error('Failed to fetch analytics');
+        return await response.json();
+    } catch (error) {
+        console.error('Analytics API Error:', error);
+        return null;
+    }
+}
+
+// Community
+async function getCommunityGroups() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/community/groups`);
+        if (!response.ok) throw new Error('Failed to fetch groups');
+        return await response.json();
+    } catch (error) {
+        console.error('Community API Error:', error);
+        return { groups: [] };
+    }
+}
+
+async function findReferrals(company) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/community/referrals?company=${encodeURIComponent(company)}`);
+        if (!response.ok) throw new Error('Failed to fetch referrals');
+        return await response.json();
+    } catch (error) {
+        console.error('Referral API Error:', error);
+        return { connections: [] };
+    }
+}
 
 // Additional function for saving jobs
 async function saveJob(jobId) {
@@ -883,6 +934,44 @@ async function customizeResume(jobId) {
 }
 
 // Export enhanced functions
+// Smart Apply & AI Features
+async function smartApply(jobUrl, userProfile, resumePath, supervised = true) {
+    try {
+        return await apiCall('/smart-apply', {
+            method: 'POST',
+            body: JSON.stringify({ jobUrl, userProfile, resumePath, supervised })
+        });
+    } catch (error) {
+        console.error('Smart Apply failed:', error);
+        throw error;
+    }
+}
+
+async function generateAICoverLetter(userProfile, jobDescription, companyInfo, variations = false) {
+    try {
+        return await apiCall('/generate-cover-letter', {
+            method: 'POST',
+            body: JSON.stringify({ userProfile, jobDescription, companyInfo, variations })
+        });
+    } catch (error) {
+        console.error('AI Cover Letter generation failed:', error);
+        throw error;
+    }
+}
+
+async function generateAIInterviewPrep(jobDescription, companyName, userProfile) {
+    try {
+        return await apiCall('/interview-prep', {
+            method: 'POST',
+            body: JSON.stringify({ jobDescription, companyName, userProfile })
+        });
+    } catch (error) {
+        console.error('AI Interview Prep failed:', error);
+        throw error;
+    }
+}
+
+// Export enhanced functions
 Object.assign(window.JoBikaAPI, {
     generateCoverLetter,
     getCoverLetterStyles,
@@ -892,6 +981,9 @@ Object.assign(window.JoBikaAPI, {
     getResumeHistory,
     compareResumes,
     getSalaryInsights,
-    customizeResume
+    customizeResume,
+    smartApply,
+    generateAICoverLetter,
+    generateAIInterviewPrep
 });
 

@@ -4,433 +4,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Track all your job applications in one place. Manage interviews, offers, and application status.">
-    <title>Application Tracker - JoBika</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family:Outfit:wght@300;400;500;600;700;800&display=swap"
+    <title>Application Tracker - JobSaathi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/main.css">
-    <link rel="stylesheet" href="assets/css/mobile.css">
-    <link rel="stylesheet" href="assets/css/hamburger.css">
-    <link rel="stylesheet" href="assets/css/guest-mode.css">
-    <style>
-        body {
-            background: var(--gray-50);
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            width: 250px;
-            background: white;
-            border-right: 1px solid var(--gray-200);
-            padding: 2rem 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .logo {
-            font-family: var(--font-display);
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-blue);
-            padding: 0 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .nav-menu {
-            list-style: none;
-        }
-
-        .nav-item {
-            margin-bottom: 0.5rem;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1.5rem;
-            color: var(--gray-700);
-            text-decoration: none;
-            transition: all var(--transition-base);
-        }
-
-        .nav-link:hover,
-        .nav-link.active {
-            background: var(--gray-100);
-            color: var(--primary-blue);
-        }
-
-        .main-content {
-            margin-left: 250px;
-            flex: 1;
-            padding: 2rem;
-        }
-
-        .kanban-board {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        .kanban-column {
-            background: white;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            min-height: 500px;
-        }
-
-        .column-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid var(--gray-200);
-        }
-
-        .column-title {
-            font-weight: 600;
-            font-size: 1.125rem;
-        }
-
-        .column-count {
-            background: var(--gray-100);
-            color: var(--gray-700);
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .application-card {
-            background: var(--gray-50);
-            border-radius: 0.75rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            cursor: pointer;
-            transition: all var(--transition-base);
-            border: 1px solid transparent;
-        }
-
-        .application-card:hover {
-            border-color: var(--primary-blue);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .app-company {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .app-position {
-            font-size: 0.875rem;
-            color: var(--gray-600);
-            margin-bottom: 0.5rem;
-        }
-
-        .app-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            color: var(--gray-500);
-            margin-top: 0.75rem;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 0.25rem;
-        }
-
-        .status-applied .status-dot {
-            background: var(--primary-blue);
-        }
-
-        .status-under_review .status-dot {
-            background: var(--warning);
-        }
-
-        .status-interview .status-dot {
-            background: var(--primary-purple);
-        }
-
-        .status-offer .status-dot {
-            background: var(--success);
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/index.css">
 </head>
 
 <body>
-    <aside class="sidebar">
-        <div class="logo">JoBika</div>
-        <ul class="nav-menu">
-            <li class="nav-item">
-                <a href="dashboard.html" class="nav-link">
-                    <span>📊</span>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="jobs.html" class="nav-link">
-                    <span>🔍</span>
-                    <span>Find Jobs</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="editor.html" class="nav-link">
-                    <span>📝</span>
-                    <span>Resume Editor</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="tracker.html" class="nav-link active">
-                    <span>📋</span>
-                    <span>Applications</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="settings.html" class="nav-link">
-                    <span>⚙️</span>
-                    <span>Settings</span>
-                </a>
-            </li>
-        </ul>
-    </aside>
-
-    <main class="main-content">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <div>
-                <h1 style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 0.5rem;">My Applications
-                </h1>
-                <p style="color: var(--gray-600);">Track all your job applications in one place</p>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <span>🚀</span> JobSaathi
             </div>
-            <div style="display: flex; gap: 1rem;">
-                <button class="btn btn-secondary">Filter</button>
-                <button class="btn btn-primary" onclick="window.location.href='jobs.html'">Apply to More Jobs</button>
-            </div>
-        </div>
 
-        <div class="kanban-board">
-            <div class="kanban-column">
-                <div class="column-header">
-                    <span class="column-title">Applied</span>
-                    <span class="column-count" id="count-applied">0</span>
+            <nav>
+                <a href="dashboard.html" class="nav-item">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="jobs.html" class="nav-item">
+                    <span class="nav-icon">💼</span> Job Matches
+                </a>
+                <a href="tracker.html" class="nav-item active">
+                    <span class="nav-icon">📌</span> Tracker
+                </a>
+                <div style="margin: 20px 0; border-top: 1px solid #E2E8F0;"></div>
+                <div class="text-gray text-sm font-bold mb-2 px-4">AI TOOLS</div>
+                <a href="chat.html" class="nav-item">
+                    <span class="nav-icon">🤖</span> Orion Coach
+                </a>
+                <a href="ats-checker.html" class="nav-item">
+                    <span class="nav-icon">📝</span> ATS Checker
+                </a>
+                <a href="skills.html" class="nav-item">
+                    <span class="nav-icon">🧠</span> Skill Advisor
+                </a>
+                <a href="interview.html" class="nav-item">
+                    <span class="nav-icon">🎤</span> Interview Prep
+                </a>
+                <a href="salary.html" class="nav-item">
+                    <span class="nav-icon">💰</span> Salary Predictor
+                </a>
+                <div style="margin: 20px 0; border-top: 1px solid #E2E8F0;"></div>
+                <a href="pricing.html" class="nav-item">
+                    <span class="nav-icon">💎</span> Premium
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <span class="nav-icon">⚙️</span> Settings
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="mb-8 flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold mb-2">Application Tracker</h1>
+                    <p class="text-gray">Track and manage your job applications.</p>
                 </div>
-                <div id="column-applied"></div>
-            </div>
+                <button class="btn btn-primary" onclick="addApplication()">+ Add Manual Entry</button>
+            </header>
 
-            <div class="kanban-column">
-                <div class="column-header">
-                    <span class="column-title">Under Review</span>
-                    <span class="column-count" id="count-under_review">0</span>
+            <!-- Stats -->
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <div class="card stat-card">
+                    <span class="stat-label">Total Sent</span>
+                    <span class="stat-value">127</span>
                 </div>
-                <div id="column-under_review"></div>
-            </div>
-
-            <div class="kanban-column">
-                <div class="column-header">
-                    <span class="column-title">Interview</span>
-                    <span class="column-count" id="count-interview">0</span>
+                <div class="card stat-card">
+                    <span class="stat-label">In Review</span>
+                    <span class="stat-value">23</span>
+                    <span class="text-warning text-sm">Active</span>
                 </div>
-                <div id="column-interview"></div>
-            </div>
-
-            <div class="kanban-column">
-                <div class="column-header">
-                    <span class="column-title">Offer</span>
-                    <span class="column-count" id="count-offer">0</span>
+                <div class="card stat-card">
+                    <span class="stat-label">Interviews</span>
+                    <span class="stat-value">8</span>
+                    <span class="text-primary text-sm">Next: Tomorrow</span>
                 </div>
-                <div id="column-offer"></div>
+                <div class="card stat-card">
+                    <span class="stat-label">Offers</span>
+                    <span class="stat-value">2</span>
+                    <span class="text-success text-sm">Action Required</span>
+                </div>
             </div>
-        </div>
-    </main>
 
-    <script src="assets/js/session-manager.js"></script>
-    <script src="assets/js/mobile-nav.js"></script>
+            <!-- Applications Table -->
+            <div class="card">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold">Recent Applications</h2>
+                    <div class="flex gap-2">
+                        <select class="p-2 border rounded-lg text-sm">
+                            <option>All Statuses</option>
+                            <option>Applied</option>
+                            <option>Interview</option>
+                            <option>Offer</option>
+                        </select>
+                        <input type="text" placeholder="Search..." class="p-2 border rounded-lg text-sm">
+                    </div>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="text-align: left; border-bottom: 2px solid #E2E8F0;">
+                            <th class="p-3 text-gray text-sm">Company</th>
+                            <th class="p-3 text-gray text-sm">Role</th>
+                            <th class="p-3 text-gray text-sm">Date Applied</th>
+                            <th class="p-3 text-gray text-sm">Status</th>
+                            <th class="p-3 text-gray text-sm">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applicationsTable">
+                        <!-- Populated by JS -->
+                        <tr style="border-bottom: 1px solid #E2E8F0;">
+                            <td class="p-3 font-bold">Swiggy</td>
+                            <td class="p-3">Senior React Developer</td>
+                            <td class="p-3 text-gray">Nov 28, 2024</td>
+                            <td class="p-3"><span class="badge badge-match">Interview</span></td>
+                            <td class="p-3">
+                                <button class="btn btn-secondary text-sm py-1 px-2">View</button>
+                            </td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #E2E8F0;">
+                            <td class="p-3 font-bold">Zomato</td>
+                            <td class="p-3">Product Manager</td>
+                            <td class="p-3 text-gray">Nov 27, 2024</td>
+                            <td class="p-3"><span class="badge badge-new">Applied</span></td>
+                            <td class="p-3">
+                                <button class="btn btn-secondary text-sm py-1 px-2">View</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
     <script src="assets/js/app.js"></script>
     <script>
-        function renderApplications() {
-            const statuses = ['applied', 'under_review', 'interview', 'offer'];
-
-            statuses.forEach(status => {
-                const apps = AppState.applications.filter(app => app.status === status);
-                const column = document.getElementById(`column-${status}`);
-                const count = document.getElementById(`count-${status}`);
-
-                count.textContent = apps.length;
-
-                column.innerHTML = apps.map(app => `
-                    <div class="application-card status-${app.status}" onclick="viewApplication(${app.id})">
-                        <div class="app-company">${app.company}</div>
-                        <div class="app-position">${app.position}</div>
-                        <div class="match-score ${getMatchScoreClass(app.matchScore)}">${app.matchScore}% Match</div>
-                        <div class="app-meta">
-                            <span><span class="status-dot"></span>${formatDate(app.appliedDate)}</span>
-                        </div>
-                        ${status === 'interview' ? `<button class="btn btn-secondary" style="margin-top:0.5rem;width:100%;padding:4px;" onclick="event.stopPropagation(); getInterviewPrepUI(${app.jobId || app.id})">Prep Guide</button>` : ''}
-                        ${status === 'offer' ? `<button class="btn btn-secondary" style="margin-top:0.5rem;width:100%;padding:4px;" onclick="event.stopPropagation(); getSalaryInsightsUI('${app.position}', 'Remote')">Salary Check</button>` : ''}
-                    </div>
-                `).join('');
-            });
+        function addApplication() {
+            alert("Open modal to add manual application");
         }
-
-        function viewApplication(appId) {
-            const app = AppState.applications.find(a => a.id === appId);
-
-            const modal = document.createElement('div');
-            modal.className = 'auth-modal-overlay';
-            modal.style.display = 'flex';
-            modal.style.zIndex = '10000';
-            modal.innerHTML = `
-                <div class="auth-modal-container" style="max-width: 500px;">
-                    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem;">
-                        <div>
-                            <h2 style="margin:0;">${app.position}</h2>
-                            <p style="color:var(--gray-600);margin:0.25rem 0 0;">${app.company}</p>
-                        </div>
-                        <button onclick="this.closest('.auth-modal-overlay').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button>
-                    </div>
-                    
-                    <div style="background:#f8f9fa;padding:1rem;border-radius:0.5rem;margin-bottom:1.5rem;">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;font-size:0.9rem;">
-                            <div>
-                                <div style="color:var(--gray-600);">Applied On</div>
-                                <div style="font-weight:500;">${formatDate(app.appliedDate)}</div>
-                            </div>
-                            <div>
-                                <div style="color:var(--gray-600);">Match Score</div>
-                                <div style="font-weight:500;color:var(--primary-blue);">${app.matchScore}%</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom:1.5rem;">
-                        <label style="display:block;margin-bottom:0.5rem;font-weight:500;">Current Status</label>
-                        <select id="statusSelect" style="width:100%;padding:0.75rem;border:1px solid var(--gray-300);border-radius:0.5rem;background:white;">
-                            <option value="applied" ${app.status === 'applied' ? 'selected' : ''}>Applied</option>
-                            <option value="under_review" ${app.status === 'under_review' ? 'selected' : ''}>Under Review</option>
-                            <option value="interview" ${app.status === 'interview' ? 'selected' : ''}>Interview</option>
-                            <option value="offer" ${app.status === 'offer' ? 'selected' : ''}>Offer</option>
-                        </select>
-                    </div>
-
-                    <div style="display:flex;gap:1rem;">
-                        <button class="btn btn-primary" style="flex:1;" onclick="updateStatus(${app.id})">Update Status</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        async function updateStatus(appId) {
-            const newStatus = document.getElementById('statusSelect').value;
-            const btn = event.target;
-            btn.disabled = true;
-            btn.textContent = 'Updating...';
-
-            try {
-                await window.JoBikaAPI.updateApplicationStatus(appId, newStatus);
-                document.querySelector('.auth-modal-overlay').remove();
-                renderApplications(); // Re-render board
-            } catch (error) {
-                console.error(error);
-                alert('Failed to update status');
-                btn.disabled = false;
-                btn.textContent = 'Update Status';
-            }
-        }
-
-        // UI Functions (Copied from jobs.html for consistency)
-        async function getInterviewPrepUI(jobId) {
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = 'Generating...';
-
-            try {
-                const result = await window.JoBikaAPI.getInterviewPrep(jobId);
-                console.log('Interview Prep:', result);
-
-                const modal = document.createElement('div');
-                modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000;';
-                modal.innerHTML = `
-                    <div style="background:white;padding:2rem;border-radius:1rem;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;">
-                        <h2 style="margin-bottom:1rem;">Interview Prep Guide</h2>
-                        <div style="background:#f0f9ff;padding:1rem;border-radius:0.5rem;margin-bottom:1rem;">
-                            <h3>Key Topics</h3>
-                            <ul style="margin-left:1.5rem;margin-top:0.5rem;">
-                                ${result.topics.map(t => `<li>${t}</li>`).join('')}
-                            </ul>
-                        </div>
-                        <h3>Sample Questions</h3>
-                        <div style="display:flex;flex-col;gap:1rem;margin-top:0.5rem;">
-                            ${result.questions.map(q => `
-                                <div style="background:#f8f9fa;padding:1rem;border-radius:0.5rem;">
-                                    <strong>Q: ${q.question}</strong>
-                                    <p style="color:#666;margin-top:0.5rem;font-size:0.9rem;">Tip: ${q.tip}</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <button class="btn btn-primary" onclick="this.parentElement.parentElement.remove()" style="margin-top:1.5rem;">Close</button>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-            } catch (error) {
-                alert('Failed to get interview prep: ' + error.message);
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
-        }
-
-        async function getSalaryInsightsUI(title, location) {
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = 'Loading...';
-
-            try {
-                const result = await window.JoBikaAPI.getSalaryInsights(title, location, 2);
-
-                const modal = document.createElement('div');
-                modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000;';
-                modal.innerHTML = `
-                    <div style="background:white;padding:2rem;border-radius:1rem;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;">
-                        <h2 style="margin-bottom:1rem;">Salary Insights: ${result.job_title}</h2>
-                        <div style="background:#f0f9ff;padding:1rem;border-radius:0.5rem;margin-bottom:1rem;">
-                            <h3 style="font-size:1.1rem;margin-bottom:0.5rem;">Estimated Salary Range</h3>
-                            <div style="font-size:1.5rem;font-weight:bold;color:#0284c7;">
-                                $${result.salary_range.min.toLocaleString()} - $${result.salary_range.max.toLocaleString()}
-                            </div>
-                            <div style="font-size:0.9rem;color:#666;">Median: $${result.salary_range.median.toLocaleString()}</div>
-                        </div>
-                        <button class="btn btn-primary" onclick="this.parentElement.parentElement.remove()" style="margin-top:1.5rem;">Close</button>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-            } catch (error) {
-                alert('Failed to get salary insights: ' + error.message);
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
-            await window.JoBikaAPI.loadApplications();
-            renderApplications();
-        });
     </script>
 </body>
 

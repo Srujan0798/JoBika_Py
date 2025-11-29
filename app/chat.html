@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion AI Coach - JobSaathi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/index.css">
+    <style>
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 140px);
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid #E2E8F0;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .message {
+            max-width: 80%;
+            padding: var(--spacing-md);
+            border-radius: var(--radius-lg);
+            line-height: 1.5;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message.ai {
+            align-self: flex-start;
+            background: #F1F5F9;
+            color: var(--neutral-color);
+            border-bottom-left-radius: 2px;
+        }
+
+        .quick-actions {
+            padding: var(--spacing-md);
+            border-top: 1px solid #E2E8F0;
+            display: flex;
+            gap: var(--spacing-sm);
+            overflow-x: auto;
+        }
+
+        .input-area {
+            padding: var(--spacing-md);
+            border-top: 1px solid #E2E8F0;
+            display: flex;
+            gap: var(--spacing-md);
+            background: #F8FAFC;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <span>🚀</span> JobSaathi
+            </div>
+
+            <nav>
+                <a href="dashboard.html" class="nav-item">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="jobs.html" class="nav-item">
+                    <span class="nav-icon">💼</span> Job Matches
+                </a>
+                <a href="tracker.html" class="nav-item">
+                    <span class="nav-icon">📌</span> Tracker
+                </a>
+                <div style="margin: 20px 0; border-top: 1px solid #E2E8F0;"></div>
+                <div class="text-gray text-sm font-bold mb-2 px-4">AI TOOLS</div>
+                <a href="chat.html" class="nav-item active">
+                    <span class="nav-icon">🤖</span> Orion Coach
+                </a>
+                <a href="ats-checker.html" class="nav-item">
+                    <span class="nav-icon">📝</span> ATS Checker
+                </a>
+                <a href="skills.html" class="nav-item">
+                    <span class="nav-icon">🧠</span> Skill Advisor
+                </a>
+                <a href="interview.html" class="nav-item">
+                    <span class="nav-icon">🎤</span> Interview Prep
+                </a>
+                <a href="salary.html" class="nav-item">
+                    <span class="nav-icon">💰</span> Salary Predictor
+                </a>
+                <div style="margin: 20px 0; border-top: 1px solid #E2E8F0;"></div>
+                <a href="pricing.html" class="nav-item">
+                    <span class="nav-icon">💎</span> Premium
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <span class="nav-icon">⚙️</span> Settings
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="mb-6">
+                <h1 class="text-2xl font-bold mb-2">Orion AI Coach</h1>
+                <p class="text-gray">Your personal career assistant. Ask anything!</p>
+            </header>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="messages">
+                    <div class="message ai">
+                        Hi Roshwin! I'm Orion, your AI career copilot. I can help you with resume reviews, interview
+                        prep, or salary negotiation. What would you like to work on today?
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <button class="btn btn-secondary text-sm" onclick="sendPrompt('Review my resume')">📝 Resume
+                        Review</button>
+                    <button class="btn btn-secondary text-sm" onclick="sendPrompt('Start mock interview')">🎤 Mock
+                        Interview</button>
+                    <button class="btn btn-secondary text-sm" onclick="sendPrompt('Analyze skill gaps')">🧠 Skill Gap
+                        Analysis</button>
+                    <button class="btn btn-secondary text-sm" onclick="sendPrompt('Salary insights for SDE')">💰 Salary
+                        Insights</button>
+                </div>
+
+                <div class="input-area">
+                    <input type="text" id="chatInput" class="flex-1 p-3 border rounded-lg"
+                        placeholder="Ask me anything about your job search..." onkeypress="handleEnter(event)">
+                    <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        function handleEnter(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        function sendPrompt(text) {
+            document.getElementById('chatInput').value = text;
+            sendMessage();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Add User Message
+            addMessage(text, 'user');
+            input.value = '';
+
+            // Simulate AI Response
+            showTyping();
+            setTimeout(() => {
+                removeTyping();
+                const response = getMockResponse(text);
+                addMessage(response, 'ai');
+            }, 1500);
+        }
+
+        function addMessage(text, sender) {
+            const container = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = `message ${sender} animate-fade-in`;
+            div.textContent = text;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showTyping() {
+            const container = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.id = 'typing';
+            div.className = 'message ai';
+            div.textContent = 'Orion is thinking...';
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function removeTyping() {
+            const el = document.getElementById('typing');
+            if (el) el.remove();
+        }
+
+        function getMockResponse(text) {
+            text = text.toLowerCase();
+            if (text.includes('resume')) return "I'd be happy to review your resume! Please upload it in the Resume Editor, and I'll analyze it for ATS compatibility and impact.";
+            if (text.includes('interview')) return "Let's practice! I'll act as the hiring manager. First question: Tell me about a challenging project you worked on recently.";
+            if (text.includes('salary')) return "Based on your profile and location (Bangalore), the market range for Senior SDE is ₹25-40 LPA. You should target ₹30 LPA given your React expertise.";
+            return "That's a great question. To give you the best advice, could you tell me more about your target role and preferred location?";
+        }
+    </script>
+</body>
+
+</html>
