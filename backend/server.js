@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: '../.env' });
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -9,6 +9,8 @@ const AuthService = require('./services/AuthService');
 const OrionCoachService = require('./services/OrionCoachService');
 const JobScraper = require('./services/JobScraper');
 const ATSService = require('./services/ATSService');
+const ResumeTailoringService = require('./services/ResumeTailoringService');
+const ApplicationFormFiller = require('./services/ApplicationFormFiller');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,9 +23,11 @@ app.use(express.static('../app')); // Serve frontend files
 // Initialize services
 const db = new DatabaseManager();
 const authService = new AuthService();
-const orionService = new OrionCoachService(process.env.OPENAI_API_KEY);
+const orionService = new OrionCoachService(process.env.GEMINI_API_KEY);
 const jobScraper = new JobScraper();
-const atsService = new ATSService(process.env.OPENAI_API_KEY);
+const atsService = new ATSService(process.env.GEMINI_API_KEY);
+const resumeTailoring = new ResumeTailoringService(process.env.GEMINI_API_KEY);
+const autoApply = new ApplicationFormFiller();
 
 // Health check
 app.get('/health', (req, res) => {
@@ -229,7 +233,20 @@ Job Description: ${jobDescription.full}`;
 app.post('/api/interview-prep', authService.authMiddleware.bind(authService), async (req, res) => {
     try {
         const { jobDescription, companyName, userProfile } = req.body;
-        const prep = await aiServices.generateInterviewPrep(jobDescription, companyName, userProfile);
+
+        // For now, use Orion to generate interview prep
+        const prompt = `Generate interview preparation for:
+Company: ${companyName}
+Role: ${jobDescription.title}
+My Profile: ${JSON.stringify(userProfile)}
+
+Provide:
+1. Top 10 likely questions
+2. STAR method examples
+3. Company research points
+4. Salary negotiation tips`;
+
+        const prep = await orionService.chatWithOrion(prompt, []);
         res.json({ prep, success: true });
     } catch (error) {
         console.error('Interview prep error:', error);
@@ -237,12 +254,196 @@ app.post('/api/interview-prep', authService.authMiddleware.bind(authService), as
     }
 });
 
+// ====== RESUME TAILORING (CORE FEATURE) ======
+
+app.post('/api/tailor-resume', authService.authMiddleware.bind(authService), async (req, res) => {
+    try {
+        const { resumeId, jobId } = req.body;
+
+        // Get user's resume
+        const resume = db.getLatestResume(req.userId);
+        if (!resume) {
+            return res.status(404).json({ error: 'No resume found. Please upload your resume first.' });
+        }
+
+        // Get job details
+        const jobs = db.searchJobs({ jobId });
+        if (!jobs || jobs.length === 0) {
+            return res.status(404).json({ error: 'Job not found' });
+        }
+        const job = jobs[0];
+
+        // Tailor resume for this specific job
+        const tailoredResume = await resumeTailoring.tailorResumeForJob(
+            JSON.parse(resume.content),
+            job.description,
+            {
+                id: job.id,
+                title: job.title,
+                company: job.company,
+                location: job.location
+            }
+        );
+
+        // Generate PDF
+        const pdfPath = `/tmp/resume_${req.userId}_${jobId}.pdf`;
+        await resumeTailoring.generateResumePDF(
+            { ...tailoredResume, name: resume.user_name, email: resume.user_email },
+            pdfPath
+        );
+
+        // Save tailored version in database
+        const versionResult = db.query(`
+            INSERT INTO resume_versions (user_id, job_id, content, pdf_path, ats_score, created_at)
+            VALUES ($1, $2, $3, $4, $5, NOW())
+            RETURNING id
+        `, [req.userId, jobId, JSON.stringify(tailoredResume), pdfPath, tailoredResume.atsScore]);
+
+        res.json({
+            success: true,
+            tailoredResume,
+            pdfPath,
+            versionId: versionResult.lastInsertRowid,
+            atsScore: tailoredResume.atsScore
+        });
+    } catch (error) {
+        console.error('Resume tailoring error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ====== AUTO-APPLY (CORE FEATURE) ======
+
+app.post('/api/auto-apply', authService.authMiddleware.bind(authService), async (req, res) => {
+    try {
+        const { jobId, supervised = true } = req.body;
+
+        // Get user data
+        const user = db.getUserById(req.userId);
+
+        // Get job
+        const jobs = db.searchJobs({ jobId });
+        if (!jobs || jobs.length === 0) {
+            return res.status(404).json({ error: 'Job not found' });
+        }
+        const job = jobs[0];
+
+        // Get or create tailored resume
+        let tailoredResume = await getTailoredResumeForJob(req.userId, jobId);
+        if (!tailoredResume) {
+            // Create tailored resume first
+            const resume = db.getLatestResume(req.userId);
+            tailoredResume = await resumeTailoring.tailorResumeForJob(
+                JSON.parse(resume.content),
+                job.description,
+                job
+            );
+
+            const pdfPath = `/tmp/resume_${req.userId}_${jobId}.pdf`;
+            await resumeTailoring.generateResumePDF(
+                { ...tailoredResume, name: user.name, email: user.email },
+                pdfPath
+            );
+            tailoredResume.pdfPath = pdfPath;
+        }
+
+        // Auto-apply to job
+        const result = await autoApply.autoApplyToJob(
+            job.source_url || job.url,
+            {
+                fullName: user.name,
+                email: user.email,
+                phone: user.phone,
+                currentCompany: user.current_company,
+                currentRole: user.current_role,
+                totalYears: user.total_years,
+                currentCTC: user.current_ctc,
+                expectedCTC: user.expected_ctc,
+                noticePeriod: user.notice_period,
+                location: user.location
+            },
+            tailoredResume,
+            supervised
+        );
+
+        // Save application to database
+        if (result.status === 'submitted' || result.status === 'awaiting_approval') {
+            db.createApplication(req.userId, {
+                job_id: jobId,
+                company: job.company,
+                role: job.title,
+                location: job.location,
+                job_url: job.source_url || job.url,
+                status: result.status === 'submitted' ? 'Applied' : 'Draft'
+            });
+        }
+
+        res.json({ success: true, result });
+    } catch (error) {
+        console.error('Auto-apply error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ====== BATCH AUTO-APPLY ======
+
+app.post('/api/batch-auto-apply', authService.authMiddleware.bind(authService), async (req, res) => {
+    try {
+        const { minMatchScore = 75, maxApplications = 20, supervised = false } = req.body;
+
+        // Get high-match jobs for user
+        const highMatchJobs = await db.query(`
+            SELECT j.* FROM job_matches jm
+            JOIN jobs j ON jm.job_id = j.id
+            WHERE jm.user_id = $1
+            AND jm.match_score >= $2
+            AND jm.job_id NOT IN (
+                SELECT job_id FROM applications WHERE user_id = $1
+            )
+            ORDER BY jm.match_score DESC
+            LIMIT $3
+        `, [req.userId, minMatchScore, maxApplications]);
+
+        const jobIds = highMatchJobs.rows.map(j => j.id);
+
+        // Batch apply
+        const results = await autoApply.batchAutoApply(
+            req.userId,
+            jobIds,
+            supervised,
+            maxApplications
+        );
+
+        res.json({ success: true, results });
+    } catch (error) {
+        console.error('Batch auto-apply error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+async function getTailoredResumeForJob(userId, jobId) {
+    const result = await db.query(`
+        SELECT * FROM resume_versions
+        WHERE user_id = $1 AND job_id = $2
+        ORDER BY created_at DESC
+        LIMIT 1
+    `, [userId, jobId]);
+
+    if (result.rows && result.rows.length > 0) {
+        return {
+            ...JSON.parse(result.rows[0].content),
+            pdfPath: result.rows[0].pdf_path
+        };
+    }
+    return null;
+}
+
 // Start server
 app.listen(port, () => {
     console.log(`\n🚀 JoBika Backend Server Running`);
     console.log(`📍 Port: ${port}`);
     console.log(`💾 Database: ${db.dbPath}`);
-    console.log(`🤖 OpenAI: ${process.env.OPENAI_API_KEY ? '✅ Configured' : '❌ Not configured'}`);
+    console.log(`🤖 Gemini AI: ${process.env.GEMINI_API_KEY ? '✅ Configured (FREE!)' : '❌ Not configured - Get FREE key: https://aistudio.google.com/app/apikey'}`);
     console.log(`\n✨ All systems ready!\n`);
 });
 

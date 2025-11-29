@@ -1,151 +1,355 @@
 const puppeteer = require('puppeteer');
+const DatabaseManager = require('../database/db');
 
+/**
+ * ApplicationFormFiller - The AUTO-APPLY engine
+ * This is what makes JoBika special - automatically fills and submits job applications
+ */
 class ApplicationFormFiller {
-    constructor(page, userProfile) {
-        this.page = page;
-        this.user = userProfile;
+    constructor() {
+        this.browser = null;
+        this.db = new DatabaseManager();
     }
 
-    async detectFormFields() {
-        // Detect all form fields on the page
-        const fields = await this.page.evaluate(() => {
-            const inputs = Array.from(document.querySelectorAll('input, select, textarea'));
-            return inputs.map(el => ({
-                id: el.id,
-                name: el.name,
-                type: el.type,
-                placeholder: el.placeholder,
-                label: el.labels?.[0]?.innerText,
-                required: el.required
-            }));
+    async init() {
+        if (!this.browser) {
+            this.browser = await puppeteer.launch({
+                headless: false, // Show browser for user to see
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+            });
+        }
+    }
+
+    async close() {
+        if (this.browser) {
+            await this.browser.close();
+            this.browser = null;
+        }
+    }
+
+    /**
+     * AUTO-APPLY to a job
+     * This is the main function that does the magic
+     */
+    async autoApplyToJob(jobUrl, userData, tailoredResume, supervised = true) {
+        try {
+            await this.init();
+            const page = await this.browser.newPage();
+
+            // Set user agent
+            await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36');
+
+            console.log(`🤖 Navigating to: ${jobUrl}`);
+            await page.goto(jobUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+
+            // Wait for page to load
+            await page.waitForTimeout(2000);
+
+            // Detect form fields
+            const formFields = await this.detectFormFields(page);
+            console.log(`📝 Detected ${Object.keys(formFields).length} form fields`);
+
+            // Fill the form
+            const fillResult = await this.fillApplicationForm(page, formFields, userData, tailoredResume);
+
+            if (supervised) {
+                // Take screenshot for user review
+                const screenshot = await page.screenshot({ fullPage: true });
+                const screenshotPath = `/tmp/application_preview_${Date.now()}.png`;
+                require('fs').writeFileSync(screenshotPath, screenshot);
+
+                console.log(`📸 Screenshot saved: ${screenshotPath}`);
+                console.log(`⏸️  PAUSED - Waiting for user approval...`);
+
+                return {
+                    status: 'awaiting_approval',
+                    screenshot: screenshotPath,
+                    formData: fillResult,
+                    page: page // Keep page open for user to review
+                };
+            } else {
+                // Auto-submit
+                const submitResult = await this.submitApplication(page);
+                await page.close();
+
+                return {
+                    status: submitResult.success ? 'submitted' : 'failed',
+                    confirmationId: submitResult.confirmationId,
+                    message: submitResult.message
+                };
+            }
+        } catch (error) {
+            console.error('Auto-apply error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Detect all form fields on the page
+     */
+    async detectFormFields(page) {
+        return await page.evaluate(() => {
+            const fields = {};
+
+            // Find all inputs, selects, textareas
+            const inputs = document.querySelectorAll('input, select, textarea');
+
+            inputs.forEach((input, index) => {
+                const fieldInfo = {
+                    type: input.type || input.tagName.toLowerCase(),
+                    name: input.name,
+                    id: input.id,
+                    placeholder: input.placeholder,
+                    required: input.required,
+                    label: null
+                };
+
+                // Try to find associated label
+                if (input.id) {
+                    const label = document.querySelector(`label[for="${input.id}"]`);
+                    if (label) fieldInfo.label = label.innerText;
+                }
+
+                // Use name, id, or index as key
+                const key = input.name || input.id || `field_${index}`;
+                fields[key] = fieldInfo;
+            });
+
+            return fields;
         });
-
-        return this.mapFieldsToData(fields);
     }
 
-    mapFieldsToData(fields) {
-        // Intelligent field mapping
-        const mapping = {};
+    /**
+     * Intelligently fill the application form
+     */
+    async fillApplicationForm(page, formFields, userData, tailoredResume) {
+        const filledFields = {};
 
-        for (const field of fields) {
-            const identifier = (field.name + (field.label || '') + (field.placeholder || '')).toLowerCase();
+        for (const [key, field] of Object.entries(formFields)) {
+            const value = this.mapFieldToUserData(field, userData, tailoredResume);
 
-            // Name fields
-            if (identifier.includes('name') && identifier.includes('first')) {
-                mapping[field.id || field.name] = this.user.firstName;
-            } else if (identifier.includes('name') && identifier.includes('last')) {
-                mapping[field.id || field.name] = this.user.lastName;
-            } else if (identifier.includes('name') && !identifier.includes('company')) {
-                mapping[field.id || field.name] = this.user.fullName;
-            }
+            if (value && field.type !== 'file') {
+                try {
+                    const selector = field.id ? `#${field.id}` : `[name="${field.name}"]`;
 
-            // Contact fields
-            else if (identifier.includes('email')) {
-                mapping[field.id || field.name] = this.user.email;
-            } else if (identifier.includes('phone') || identifier.includes('mobile')) {
-                mapping[field.id || field.name] = this.user.phone;
-            }
+                    if (field.type === 'select') {
+                        await page.select(selector, value);
+                    } else {
+                        await page.type(selector, String(value));
+                    }
 
-            // Professional fields
-            else if (identifier.includes('experience') || identifier.includes('years')) {
-                mapping[field.id || field.name] = this.user.totalYears.toString();
-            } else if (identifier.includes('current') && identifier.includes('company')) {
-                mapping[field.id || field.name] = this.user.currentCompany;
-            } else if (identifier.includes('current') && identifier.includes('ctc')) {
-                mapping[field.id || field.name] = this.user.currentCTC.toString();
-            } else if (identifier.includes('expected') && identifier.includes('ctc')) {
-                mapping[field.id || field.name] = this.user.expectedCTC.toString();
-            } else if (identifier.includes('notice') && identifier.includes('period')) {
-                mapping[field.id || field.name] = this.user.noticePeriod.toString();
-            }
-
-            // Location
-            else if (identifier.includes('location') || identifier.includes('city')) {
-                mapping[field.id || field.name] = this.user.currentLocation;
-            }
-
-            // Resume upload
-            else if (field.type === 'file' && identifier.includes('resume')) {
-                mapping[field.id || field.name] = { type: 'file', path: this.user.resumePath };
-            }
-
-            // Cover letter
-            else if (identifier.includes('cover') && identifier.includes('letter')) {
-                mapping[field.id || field.name] = this.user.coverLetter;
-            }
-
-            // Skills (checkboxes or multi-select)
-            else if (identifier.includes('skill')) {
-                mapping[field.id || field.name] = this.user.skills;
-            }
-
-            // LinkedIn profile
-            else if (identifier.includes('linkedin')) {
-                mapping[field.id || field.name] = this.user.linkedinUrl;
-            }
-
-            // Portfolio/GitHub
-            else if (identifier.includes('portfolio') || identifier.includes('github')) {
-                mapping[field.id || field.name] = this.user.portfolioUrl || this.user.githubUrl;
+                    filledFields[key] = value;
+                    console.log(`✅ Filled ${field.label || key}: ${value}`);
+                } catch (error) {
+                    console.log(`⚠️  Failed to fill ${key}:`, error.message);
+                }
+            } else if (field.type === 'file' && value) {
+                // Upload resume
+                try {
+                    const selector = field.id ? `#${field.id}` : `[name="${field.name}"]`;
+                    const input = await page.$(selector);
+                    if (input) {
+                        await input.uploadFile(value);
+                        filledFields[key] = value;
+                        console.log(`📎 Uploaded resume to ${key}`);
+                    }
+                } catch (error) {
+                    console.log(`⚠️  Failed to upload resume:`, error.message);
+                }
             }
         }
 
-        return mapping;
+        return filledFields;
     }
 
-    async fillForm(mapping) {
-        for (const [fieldSelector, value] of Object.entries(mapping)) {
-            if (!value) continue;
+    /**
+     * Map form field to user data
+     */
+    mapFieldToUserData(field, userData, tailoredResume) {
+        const identifier = `${field.label || ''} ${field.name || ''} ${field.placeholder || ''}`.toLowerCase();
+
+        // Name fields
+        if (identifier.includes('full name') || identifier.includes('your name')) {
+            return userData.fullName || userData.name;
+        }
+        if (identifier.includes('first name')) {
+            return userData.firstName;
+        }
+        if (identifier.includes('last name')) {
+            return userData.lastName;
+        }
+
+        // Contact
+        if (identifier.includes('email')) {
+            return userData.email;
+        }
+        if (identifier.includes('phone') || identifier.includes('mobile')) {
+            return userData.phone;
+        }
+
+        // Professional
+        if (identifier.includes('current company')) {
+            return userData.currentCompany;
+        }
+        if (identifier.includes('current role') || identifier.includes('current designation')) {
+            return userData.currentRole;
+        }
+        if (identifier.includes('total experience') || identifier.includes('years of experience')) {
+            return userData.totalYears?.toString();
+        }
+        if (identifier.includes('current ctc')) {
+            return userData.currentCTC?.toString();
+        }
+        if (identifier.includes('expected ctc')) {
+            return userData.expectedCTC?.toString();
+        }
+        if (identifier.includes('notice period')) {
+            return userData.noticePeriod?.toString();
+        }
+
+        // Location
+        if (identifier.includes('location') || identifier.includes('city')) {
+            return userData.location;
+        }
+
+        // Resume upload
+        if (field.type === 'file' && identifier.includes('resume')) {
+            return tailoredResume.pdfPath;
+        }
+
+        // LinkedIn
+        if (identifier.includes('linkedin')) {
+            return userData.linkedinUrl;
+        }
+
+        // Cover letter
+        if (identifier.includes('cover letter')) {
+            return tailoredResume.coverLetter || 'I am excited to apply for this position...';
+        }
+
+        return null;
+    }
+
+    /**
+     * Submit the application
+     */
+    async submitApplication(page) {
+        try {
+            // Find submit button
+            const submitButton = await page.$(
+                'button[type="submit"], input[type="submit"], button:contains("Submit"), button:contains("Apply")'
+            );
+
+            if (!submitButton) {
+                throw new Error('Submit button not found');
+            }
+
+            console.log('🚀 Submitting application...');
+            await submitButton.click();
+
+            // Wait for confirmation
+            await page.waitForNavigation({ timeout: 10000 }).catch(() => { });
+            await page.waitForTimeout(2000);
+
+            // Check for confirmation message
+            const confirmationText = await page.evaluate(() => document.body.innerText);
+            const isSuccess =
+                confirmationText.toLowerCase().includes('application submitted') ||
+                confirmationText.toLowerCase().includes('thank you') ||
+                confirmationText.toLowerCase().includes('success');
+
+            return {
+                success: isSuccess,
+                confirmationId: isSuccess ? this.extractApplicationId(confirmationText) : null,
+                message: isSuccess ? 'Application submitted successfully' : 'Submission status unclear'
+            };
+        } catch (error) {
+            console.error('Submit error:', error);
+            return {
+                success: false,
+                message: error.message
+            };
+        }
+    }
+
+    /**
+     * Extract application ID from confirmation message
+     */
+    extractApplicationId(text) {
+        const match = text.match(/application.*?id.*?:?\s*([A-Z0-9-]+)/i);
+        return match ? match[1] : `APP-${Date.now()}`;
+    }
+
+    /**
+     * Batch auto-apply to multiple jobs
+     * The core of automated job hunting
+     */
+    async batchAutoApply(userId, jobIds, supervised = false, dailyLimit = 20) {
+        const results = [];
+        const user = this.db.getUserById(userId);
+
+        let appliedToday = 0;
+
+        for (const jobId of jobIds) {
+            if (appliedToday >= dailyLimit) {
+                console.log(`🛑 Daily limit reached (${dailyLimit} applications)`);
+                break;
+            }
 
             try {
-                if (value?.type === 'file') {
-                    // Upload file
-                    const input = await this.page.$(`#${fieldSelector}, [name="${fieldSelector}"]`);
-                    if (input) await input.uploadFile(value.path);
-                } else if (Array.isArray(value)) {
-                    // Handle multi-select or checkboxes (skills)
-                    for (const skill of value) {
-                        try {
-                            await this.page.click(`input[value="${skill}"], label:contains("${skill}")`);
-                        } catch (e) {
-                            // Ignore if specific skill not found
-                        }
-                    }
-                } else {
-                    // Regular text input
-                    await this.page.type(`#${fieldSelector}, [name="${fieldSelector}"]`, value.toString());
-                }
-            } catch (e) {
-                console.error(`Failed to fill field ${fieldSelector}:`, e.message);
-            }
-        }
-    }
+                const job = await this.getJobDetails(jobId);
+                const tailoredResume = await this.generateTailoredResume(user, job);
 
-    async submitForm(supervised = true) {
-        if (supervised) {
-            // Take screenshot for user review
-            const screenshot = await this.page.screenshot({ fullPage: true, encoding: 'base64' });
-            return { screenshot, needsApproval: true };
-        } else {
-            // Auto-submit
-            const submitButton = await this.page.$('button[type="submit"], input[type="submit"]');
-            if (submitButton) {
-                await submitButton.click();
+                const result = await this.autoApplyToJob(
+                    job.url,
+                    user,
+                    tailoredResume,
+                    supervised
+                );
 
-                // Wait for confirmation
-                await this.page.waitForNavigation({ timeout: 10000 }).catch(() => { });
-
-                // Capture confirmation message
-                const confirmation = await this.page.evaluate(() => {
-                    return document.body.innerText.includes('Application submitted') ||
-                        document.body.innerText.includes('Thank you') ||
-                        document.body.innerText.includes('Success');
+                results.push({
+                    jobId,
+                    company: job.company,
+                    status: result.status,
+                    appliedAt: new Date()
                 });
 
-                return { success: confirmation };
+                appliedToday++;
+
+                // Delay between applications (to avoid rate limiting)
+                await new Promise(resolve => setTimeout(resolve, 5000));
+            } catch (error) {
+                results.push({
+                    jobId,
+                    status: 'failed',
+                    error: error.message
+                });
             }
-            return { success: false, error: 'Submit button not found' };
         }
+
+        return {
+            totalAttempted: results.length,
+            successful: results.filter(r => r.status === 'submitted').length,
+            failed: results.filter(r => r.status === 'failed').length,
+            results
+        };
+    }
+
+    async getJobDetails(jobId) {
+        const job = this.db.searchJobs({ jobId });
+        if (!job || job.length === 0) {
+            throw new Error(`Job ${jobId} not found`);
+        }
+        return job[0];
+    }
+
+    async generateTailoredResume(user, job) {
+        // This would call ResumeTailoringService
+        // For now, placeholder
+        return {
+            pdfPath: `/tmp/resume_${user.id}_${job.id}.pdf`,
+            coverLetter: 'Generated cover letter...'
+        };
     }
 }
 

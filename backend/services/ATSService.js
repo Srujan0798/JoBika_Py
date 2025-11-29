@@ -1,8 +1,8 @@
-const OpenAI = require('openai');
+const GeminiService = require('./GeminiService');
 
 class ATSService {
-    constructor(apiKey = null) {
-        this.openai = apiKey ? new OpenAI({ apiKey }) : null;
+    constructor(apiKey) {
+        this.gemini = new GeminiService(apiKey);
     }
 
     async calculateATSScore(resumeText, jobDescription) {

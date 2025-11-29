@@ -1,53 +1,31 @@
-const OpenAI = require('openai');
+const GeminiService = require('./GeminiService');
 
 class OrionCoachService {
     constructor(apiKey) {
-        this.openai = apiKey ? new OpenAI({ apiKey }) : null;
+        this.gemini = new GeminiService(apiKey);
+
+        if (!apiKey) {
+            console.warn('⚠️  Gemini API key not configured. Orion will use mock responses. Get FREE key: https://aistudio.google.com/app/apikey');
+        }
     }
 
-    async chatWithOrion(message, chatHistory = []) {
-        if (!this.openai) {
-            return "I'm Orion, your AI career coach! However, I need an OpenAI API key to provide real assistance. Please configure OPENAI_API_KEY in your .env file. In the meantime, I can help guide you with general career advice!";
+    async chatWithOrion(userMessage, chatHistory = []) {
+        if (!this.gemini.isConfigured()) {
+            return this.getMockResponse(userMessage);
         }
 
         try {
-            // Build conversation context
-            const messages = [
-                {
-                    role: 'system',
-                    content: `You are Orion, an expert AI career coach specializing in the Indian job market. You help with:
-- Resume optimization for ATS systems
-- Interview preparation
-- Salary negotiation strategies
-- Career growth advice
-- Job search strategies
-- Cover letter writing
+            const systemInstruction = `You are Orion, an expert AI career coach specializing in the Indian job market. 
+You help with: resume improvement, interview prep, salary negotiation, career guidance, CTC negotiations, notice periods.
+Be professional, encouraging, and provide actionable advice specific to India.
+Use Indian English and understand concepts like CTC, LPA, notice period, immediate joiner, etc.`;
 
-Be concise, practical, and India-focused. Provide actionable advice. Use Indian salary formats (LPA) and understand Indian work culture.`
-                },
-                ...chatHistory.map(msg => ({
-                    role: msg.role,
-                    content: msg.content
-                })),
-                {
-                    role: 'user',
-                    content: message
-                }
-            ];
-
-            const response = await this.openai.chat.completions.create({
-                model: 'gpt-4',
-                messages: messages,
-                temperature: 0.7,
-                max_tokens: 500
-            });
-
-            return response.choices[0].message.content;
+            return await this.gemini.chatWithHistory(userMessage, chatHistory);
         } catch (error) {
             console.error('Orion chat error:', error);
 
-            if (error.code === 'insufficient_quota') {
-                return "I apologize, but it seems the OpenAI API quota has been exceeded. Please check your API key billing status.";
+            if (error.message && (error.message.includes('quota') || error.message.includes('API key'))) {
+                return "I apologize, but there's an issue with the Gemini API. Please check your API key.";
             }
 
             throw new Error(`Chat service error: ${error.message}`);
@@ -55,46 +33,41 @@ Be concise, practical, and India-focused. Provide actionable advice. Use Indian 
     }
 
     async generateResumeReview(resumeText) {
-        if (!this.openai) {
-            return {
-                overallScore: 75,
-                strengths: [
-                    "Clear professional experience",
-                    "Good technical skills listed"
-                ],
-                improvements: [
-                    "Add more quantifiable achievements",
-                    "Include keywords for ATS optimization",
-                    "Shorten bullet points"
-                ],
-                suggestions: "Add an OpenAI API key for detailed AI-powered analysis."
-            };
+        if (!this.gemini.isConfigured()) {
+            return { score: 75, feedback: "Mock feedback - add Gemini API key for real review!" };
         }
 
-        try {
-            const prompt = `Analyze this resume and provide:
-1. Overall score (0-100)
-2. Top 3 strengths
-3. Top 3 improvements needed
-4. Specific suggestions for the Indian job market
+        const prompt = `Review this resume and provide a score and detailed feedback for the Indian job market:
 
-Resume:
 ${resumeText}
 
-Return as JSON with keys: overallScore, strengths (array), improvements (array), suggestions (string)`;
+Provide a JSON response with:
+{
+  "score": 0-100,
+  "strengths": ["strength1", "strength2"],
+  "improvements": ["improvement1", "improvement2"],
+  "atsScore": 0-100,
+  "recommendations": ["recommendation1", "recommendation2"]
+}`;
 
-            const response = await this.openai.chat.completions.create({
-                model: 'gpt-4',
-                messages: [{ role: 'user', content: prompt }],
-                response_format: { type: 'json_object' },
-                temperature: 0.7
-            });
-
-            return JSON.parse(response.choices[0].message.content);
+        try {
+            return await this.gemini.generateJSON(prompt);
         } catch (error) {
             console.error('Resume review error:', error);
-            throw error;
+            return { score: 75, feedback: "Error generating review", error: error.message };
         }
+    }
+
+    getMockResponse(message) {
+        const responses = {
+            resume: "I can help you improve your resume! However, I need a Gemini API key for detailed analysis. Get your FREE key at https://aistudio.google.com/app/apikey",
+            interview: "For interview prep, I'd need access to AI capabilities. Please add your free Gemini API key!",
+            salary: "Salary negotiation is important! Add Gemini API key for personalized advice.",
+            default: "I'm Orion, your AI career coach! Add your FREE Gemini API key to unlock real AI-powered guidance. Visit: https://aistudio.google.com/app/apikey"
+        };
+
+        const key = Object.keys(responses).find(k => message.toLowerCase().includes(k)) || 'default';
+        return responses[key];
     }
 }
 
