@@ -8,8 +8,7 @@
         "dev": "nodemon server.js",
         "test": "echo \"Error: no test specified\" && exit 1",
         "migrate": "node database/migrate.js",
-        "scrape": "node services/SimpleJobScraper.js",
-        "postinstall": "puppeteer install"
+        "scrape": "node services/SimpleJobScraper.js"
     },
     "keywords": [
         "jobs",
@@ -35,7 +34,8 @@
         "morgan": "^1.10.0",
         "cors": "^2.8.5",
         "puppeteer": "^21.6.1",
-        "@google/generative-ai": "^0.1.3"
+        "@google/generative-ai": "^0.1.3",
+        "pdfkit": "^0.13.0"
     },
     "devDependencies": {
         "nodemon": "^3.0.2",
