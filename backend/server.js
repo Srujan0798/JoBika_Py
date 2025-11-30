@@ -80,6 +80,45 @@ app.get('/health', (req, res) => {
             console.log('Closing database connections...');
             await db.close();
         });
+        // ====== AUTH ROUTES ======
+
+        app.post('/api/auth/register', async (req, res) => {
+            try {
+                const { email, password, name, ...profileData } = req.body;
+                const result = await authService.register(email, password, name, profileData);
+                res.json(result);
+            } catch (error) {
+                res.status(400).json({ error: error.message });
+            }
+        });
+
+        app.post('/api/auth/login', async (req, res) => {
+            try {
+                const { email, password } = req.body;
+                const result = await authService.login(email, password);
+                res.json(result);
+            } catch (error) {
+                res.status(401).json({ error: error.message });
+            }
+        });
+
+        app.get('/api/auth/me', authService.authMiddleware.bind(authService), async (req, res) => {
+            try {
+                const user = db.getUserById(req.userId);
+                if (!user) return res.status(404).json({ error: 'User not found' });
+                res.json({
+                    user: {
+                        id: user.id,
+                        email: user.email,
+                        name: user.name,
+                        profileData: JSON.parse(user.profile_data || '{}')
+                    }
+                });
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
         // ====== ORION AI CHAT ROUTES ======
 
         app.post('/api/orion/chat', authService.authMiddleware.bind(authService), async (req, res) => {
