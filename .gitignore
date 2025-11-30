@@ -20,3 +20,4 @@ temp/
 tmp/
 incidents/
 sre_report.json
+.vercel
