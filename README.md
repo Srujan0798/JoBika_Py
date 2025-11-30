@@ -7,10 +7,11 @@
 ## 🎯 **Tech Stack**
 
 ```
-Frontend:  Vanilla JavaScript + Vercel (FREE)
-Backend:   Node.js + Express + Railway ($5/mo)
-Database:  PostgreSQL + Supabase (FREE)
-AI:        Google Gemini (FREE tier)
+Frontend:  React + Vite + TailwindCSS (Vercel)
+Backend:   Node.js + Express (Railway)
+Database:  PostgreSQL (Supabase) + SQLite Fallback
+AI:        Google Gemini (Free Tier)
+Automation: Puppeteer (Auto-Apply)
 ```
 
 ---
@@ -21,27 +22,38 @@ AI:        Google Gemini (FREE tier)
 ```bash
 git clone https://github.com/Srujan0798/JoBika_Pyt.git
 cd JoBika_Pyt
+
+# Install Backend
 cd backend && npm install
+
+# Install Frontend
+cd ../frontend && npm install
 ```
 
 ### 2. Setup Environment
+Create `backend/.env`:
 ```bash
-# Create backend/.env
 DATABASE_TYPE=postgres
 DATABASE_URL=your_supabase_connection_string
 GEMINI_API_KEY=your_gemini_api_key
 JWT_SECRET=your_secret_key
 NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
 ```
 
 ### 3. Run Locally
+**Backend:**
 ```bash
-# Start backend
 cd backend
-node server.js
+npm run dev
+# Runs on http://localhost:8080
+```
 
-# Open frontend
-# Open app/index.html in browser
+**Frontend:**
+```bash
+cd frontend
+npm run dev
+# Runs on http://localhost:5173
 ```
 
 ---
@@ -49,41 +61,19 @@ node server.js
 ## 📦 **Deployment**
 
 ### Backend → Railway
-```bash
-# Install Railway CLI
-curl -fsSL https://railway.app/install.sh | sh
-
-# Login & deploy
-railway login
-railway init
-cd backend && railway up
-```
+1. Connect GitHub repo to Railway.
+2. Set Root Directory to `backend`.
+3. Add Variables:
+   - `DATABASE_URL`, `GEMINI_API_KEY`, `JWT_SECRET`, `NODE_ENV=production`
+   - `FRONTEND_URL` (Your Vercel URL)
+   - `ALLOWED_ORIGINS` (Your Vercel URL)
+   - `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium`
 
 ### Frontend → Vercel
-```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Deploy
-vercel --prod
-```
-
-### Database → Supabase
-1. Create project at [supabase.com](https://supabase.com)
-2. Run `backend/database/postgres_schema.sql` in SQL Editor
-3. Copy connection string to `.env`
-
----
-
-## 🎨 **Features**
-
-- ✅ **AI Resume Tailoring** - Customize resume for each job (Gemini)
-- ✅ **Auto-Apply** - Automated job applications (Puppeteer)
-- ✅ **Orion AI Coach** - 24/7 career guidance
-- ✅ **ATS Checker** - Resume compatibility scoring
-- ✅ **Application Tracker** - Track all applications
-- ✅ **Job Search** - Search & filter jobs
-- ✅ **Meta-Grade SRE** - Autonomous error monitoring
+1. Connect GitHub repo to Vercel.
+2. Set Root Directory to `frontend`.
+3. Framework Preset: `Vite`.
+4. Deploy!
 
 ---
 
@@ -91,95 +81,47 @@ vercel --prod
 
 ```
 JoBika_Pyt/
-├── app/                    # Frontend (Vercel)
-│   ├── index.html
-│   ├── dashboard.html
-│   ├── jobs.html
-│   ├── chat.html
-│   └── assets/
-│       ├── css/
-│       ├── js/
-│       └── images/
+├── frontend/               # React + Vite App
+│   ├── src/
+│   ├── public/
+│   └── vite.config.js
 │
-├── backend/                # Backend (Railway)
-│   ├── server.js          # Main server
-│   ├── database/          # DB config & schema
-│   ├── services/          # AI, scraping, etc.
-│   ├── middleware/        # Auth, validation
-│   ├── utils/             # Helpers
-│   └── scripts/           # Cron jobs, SRE agent
+├── backend/                # Node.js API
+│   ├── server.js          # Main entry point
+│   ├── database/          # DB Manager (Postgres/SQLite)
+│   ├── services/          # AI & Scraper Services
+│   ├── middleware/        # Security & Auth
+│   └── Dockerfile         # Deployment config
 │
-├── .env                   # Environment variables
-├── package.json
-└── README.md
+└── README.md              # This file
 ```
 
 ---
 
 ## 🔐 **Environment Variables**
 
+### Backend (Railway)
 ```bash
-# Database (Supabase)
+# Database
 DATABASE_TYPE=postgres
-DATABASE_URL=postgresql://postgres:password@host:5432/postgres
-DATABASE_SSL=true
+DATABASE_URL=postgresql://...
+DATABASE_SSL=require
 
-# AI (Gemini)
-GEMINI_API_KEY=your_key_from_aistudio.google.com
+# AI
+GEMINI_API_KEY=AIzaSy...
 
-# Auth
-JWT_SECRET=generate_with_openssl_rand_hex_32
+# Security
+JWT_SECRET=...
+ALLOWED_ORIGINS=https://jobika-pyt.vercel.app,http://localhost:5173
+FRONTEND_URL=https://jobika-pyt.vercel.app
 
-# Environment
-NODE_ENV=production
-
-# CORS
-ALLOWED_ORIGINS=https://jobika.vercel.app
+# Puppeteer
+PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ```
 
 ---
 
-## 💰 **Cost Breakdown**
-
-| Service | Tier | Cost |
-|---------|------|------|
-| Vercel (Frontend) | FREE | $0 |
-| Railway (Backend) | Hobby | $5/mo |
-| Supabase (Database) | FREE | $0 |
-| Gemini AI | FREE | $0 |
-| **Total** | | **$5/month** |
-
----
-
-## 📚 **Documentation**
-
-- [Quick Start Guide](./a_START_HERE.md) - Deploy in 20 minutes
-- [Startup Workflow](./a_JoBika_STARTUP_WORKFLOW.md) - Launch strategy
-- [Audit Report](./a_AUDIT_REPORT.md) - Project analysis
-- [Credentials](./a_CREDENTIALS.md) - Your saved credentials
-
----
-
-## 🆘 **Support**
-
-**Issues?**
-1. Check [a_START_HERE.md](./a_START_HERE.md)
-2. Check Railway/Vercel logs
-3. Review backend health: `curl https://jobika-backend-production.up.railway.app/health`
-
-**Questions?**
-- GitHub Issues
-- Email: support@jobika.com
-
----
-
 ## 📄 **License**
-
-MIT License - See LICENSE file
-
----
+MIT License
 
 **Built with ❤️ in India 🇮🇳**
-
-**Version:** 1.0.0  
-**Status:** 🟢 Production Ready
