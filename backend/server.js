@@ -527,13 +527,14 @@ const server = app.listen(port, () => {
 global.server = server;
 
 // Setup Graceful Shutdown
-const { setupGracefulShutdown } = require('./utils/fixTemplates');
-setupGracefulShutdown(server, [
-    async () => {
+// Graceful Shutdown handled by utils/errorHandler.js
+// We add a listener to close the DB connection when the server closes
+if (global.server) {
+    global.server.on('close', async () => {
         console.log('Closing database connections...');
         await db.close();
-    }
-]);
+    });
+}
 
 // Performance monitoring endpoint
 app.post('/api/performance', (req, res) => {
