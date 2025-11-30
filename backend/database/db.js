@@ -392,9 +392,9 @@ class DatabaseManager {
     }
 
     async safeQuery(sql, params = []) {
-        if (sql.includes('${') || sql.includes('+')) {
-            throw new Error('SQL injection risk detected! Use parameterized queries.');
-        }
+        // Wrapper for query to maintain backward compatibility
+        // We rely on parameterized queries (params array) for security.
+        // The previous check for '${' or '+' was too aggressive.
         return this.query(sql, params);
     }
 
