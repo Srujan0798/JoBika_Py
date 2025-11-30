@@ -1,10 +1,10 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const DatabaseManager = require('../database/db');
+const db = require('../database/db');
 
 class AuthService {
     constructor() {
-        this.db = new DatabaseManager();
+        this.db = db;
         this.saltRounds = 10;
     }
 

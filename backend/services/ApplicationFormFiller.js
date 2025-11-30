@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer');
-const DatabaseManager = require('../database/db');
+const db = require('../database/db');
 
 /**
  * ApplicationFormFiller - The AUTO-APPLY engine
@@ -8,12 +8,13 @@ const DatabaseManager = require('../database/db');
 class ApplicationFormFiller {
     constructor() {
         this.browser = null;
-        this.db = new DatabaseManager();
+        this.db = db;
+        this.puppeteer = require('puppeteer');
     }
 
     async init() {
         if (!this.browser) {
-            this.browser = await puppeteer.launch({
+            this.browser = await this.puppeteer.launch({
                 headless: false, // Show browser for user to see
                 args: ['--no-sandbox', '--disable-setuid-sandbox']
             });
