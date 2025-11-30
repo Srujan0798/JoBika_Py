@@ -42,6 +42,7 @@ Frontend:
 ✅ TailwindCSS - Quick styling
 ✅ Vercel - Deployment (FREE)
 
+
 Backend:
 ✅ Node.js + Express - Easy to learn
 ✅ Railway/Render - Hosting ($5/mo or FREE)

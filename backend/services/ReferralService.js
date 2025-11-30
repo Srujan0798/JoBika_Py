@@ -1,40 +1,27 @@
+const db = require('../database/db');
+
 class ReferralService {
     constructor() {
-        // Mock data
+        this.db = new db();
     }
 
-    async findReferralConnections(userId, companyName) {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 300));
+    async findConnections(userId, companyName) {
+        // In a real app, this would query the LinkedIn API or a scraped graph
+        // Here we mock it or check internal user base
+        const alumni = await this.db.query(`
+            SELECT * FROM users 
+            WHERE current_company ILIKE $1 AND id != $2
+        `, [`%${companyName}%`, userId]);
 
-        // Mock connections based on company
-        if (companyName.toLowerCase().includes('google')) {
-            return [
-                { name: 'Rahul Sharma', role: 'Senior SDE', connection: '1st Degree', avatar: '👨‍💻' },
-                { name: 'Priya Singh', role: 'Product Manager', connection: '2nd Degree', avatar: '👩‍💼' }
-            ];
-        } else if (companyName.toLowerCase().includes('microsoft')) {
-            return [
-                { name: 'Amit Patel', role: 'Engineering Manager', connection: 'Alumni', avatar: '🎓' }
-            ];
-        }
-
-        return [];
+        return {
+            internal_alumni: alumni.rows,
+            linkedin_2nd_degree: [] // Mock
+        };
     }
 
-    async getCommunityGroups() {
-        return [
-            { id: 1, name: 'SDE Job Seekers India', members: 1250, active: true },
-            { id: 2, name: 'Product Management Prep', members: 890, active: true },
-            { id: 3, name: 'Data Science & ML', members: 1100, active: true },
-            { id: 4, name: 'Bangalore Tech Network', members: 3400, active: true }
-        ];
-    }
-
-    async trackReferralRequest(userId, connectionName, jobId) {
-        console.log(`[🤝 REFERRAL] User ${userId} requested referral from ${connectionName} for Job ${jobId}`);
-        return { success: true, status: 'sent' };
+    generateRequestMessage(userName, contactName, role, company) {
+        return `Hi ${contactName},\n\nI hope you're doing well! I saw you're working at ${company} as a ${role}. I'm currently applying for a similar role there and was wondering if you could share any insights on the team culture? If you're open to it, I'd also appreciate a referral.\n\nBest,\n${userName}`;
     }
 }
 
-module.exports = ReferralService;
+module.exports = new ReferralService();
