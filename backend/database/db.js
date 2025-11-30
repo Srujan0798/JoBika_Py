@@ -1,11 +1,46 @@
 const { Pool } = require('pg');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const fs = require('fs');
 
 /**
- * Production Database Manager - PostgreSQL Only
+ * Database Manager - Supports PostgreSQL with SQLite Fallback
  */
 class DatabaseManager {
     constructor() {
-        this.initPostgres();
+        this.dbType = 'postgres'; // Default to postgres
+        this.pool = null;
+        this.sqliteDb = null;
+        this.initDatabase();
+    }
+
+    async initDatabase() {
+        // Try initializing PostgreSQL first
+        if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('postgres')) {
+            try {
+                console.log('🔄 Attempting to connect to PostgreSQL...');
+                this.initPostgres();
+                // Test connection
+                await this.pool.query('SELECT 1');
+                console.log('✅ PostgreSQL connected successfully');
+
+                // Initialize Postgres Schema
+                await this.initializePostgresSchema();
+                return;
+            } catch (err) {
+                console.error('❌ PostgreSQL connection failed:', err.message);
+                console.log('⚠️ Switching to SQLite fallback...');
+                this.dbType = 'sqlite';
+            }
+        } else {
+            console.log('⚠️ No valid DATABASE_URL found. Using SQLite fallback.');
+            this.dbType = 'sqlite';
+        }
+
+        // Initialize SQLite if Postgres failed or wasn't configured
+        if (this.dbType === 'sqlite') {
+            this.initSqlite();
+        }
     }
 
     initPostgres() {
@@ -16,18 +51,27 @@ class DatabaseManager {
             } : false,
             max: 20,
             idleTimeoutMillis: 30000,
-            connectionTimeoutMillis: 2000,
+            connectionTimeoutMillis: 5000, // Reduced timeout for faster fallback
         });
 
         this.pool.on('error', (err) => {
             console.error('Unexpected PostgreSQL error', err);
+            // If runtime error occurs, we might want to switch to SQLite, 
+            // but for now we just log it as the pool might recover.
         });
+    }
 
-        // Auto-initialize schema
-        this.initializePostgresSchema().then(() => {
-            console.log('✅ PostgreSQL connection pool & schema initialized');
-        }).catch(err => {
-            console.error('❌ Schema initialization failed:', err);
+    initSqlite() {
+        const dbPath = path.resolve(__dirname, 'local.sqlite');
+        console.log(`📂 Initializing SQLite database at: ${dbPath}`);
+
+        this.sqliteDb = new sqlite3.Database(dbPath, (err) => {
+            if (err) {
+                console.error('❌ SQLite initialization failed:', err.message);
+            } else {
+                console.log('✅ SQLite connected successfully');
+                this.initializeSqliteSchema();
+            }
         });
     }
 
@@ -147,26 +191,203 @@ class DatabaseManager {
         const statements = schema.split(';').filter(s => s.trim());
         for (const stmt of statements) {
             try {
-                await this.query(stmt);
+                await this.pool.query(stmt);
             } catch (err) {
-                console.warn(`Warning executing schema statement: ${stmt.substring(0, 50)}...`, err.message);
+                console.warn(`Warning executing Postgres schema statement: ${stmt.substring(0, 50)}...`, err.message);
             }
         }
     }
 
+    initializeSqliteSchema() {
+        const schema = `
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                name TEXT,
+                phone TEXT,
+                current_company TEXT,
+                current_role TEXT,
+                total_years INTEGER,
+                current_ctc REAL,
+                expected_ctc REAL,
+                notice_period INTEGER,
+                location TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                subscription_tier TEXT DEFAULT 'free',
+                profile_data TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS applications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                job_id INTEGER,
+                company TEXT NOT NULL,
+                role TEXT NOT NULL,
+                location TEXT,
+                job_url TEXT,
+                status TEXT DEFAULT 'Applied',
+                applied_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                notes TEXT,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS jobs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                company TEXT NOT NULL,
+                location TEXT,
+                description TEXT,
+                requirements TEXT,
+                salary_min REAL,
+                salary_max REAL,
+                experience_min INTEGER,
+                experience_max INTEGER,
+                job_type TEXT,
+                source TEXT,
+                source_url TEXT UNIQUE,
+                posted_date DATETIME,
+                scraped_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                is_active INTEGER DEFAULT 1
+            );
+
+            CREATE TABLE IF NOT EXISTS resumes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                user_name TEXT,
+                user_email TEXT,
+                content TEXT NOT NULL,
+                original_filename TEXT,
+                uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS resume_versions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                job_id INTEGER,
+                content TEXT NOT NULL,
+                pdf_path TEXT,
+                ats_score REAL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id),
+                FOREIGN KEY(job_id) REFERENCES jobs(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS chat_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                role TEXT NOT NULL,
+                message TEXT NOT NULL,
+                folder TEXT DEFAULT 'All',
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            );
+            
+            CREATE TABLE IF NOT EXISTS saved_jobs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                job_id INTEGER NOT NULL,
+                notes TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, job_id),
+                FOREIGN KEY(user_id) REFERENCES users(id),
+                FOREIGN KEY(job_id) REFERENCES jobs(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS job_alerts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                keywords TEXT,
+                locations TEXT,
+                job_types TEXT,
+                experience_min INTEGER,
+                experience_max INTEGER,
+                salary_min REAL,
+                is_active INTEGER DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            );
+        `;
+
+        this.sqliteDb.serialize(() => {
+            // Enable foreign keys
+            this.sqliteDb.run("PRAGMA foreign_keys = ON");
+
+            const statements = schema.split(';').filter(s => s.trim());
+            for (const stmt of statements) {
+                this.sqliteDb.run(stmt, (err) => {
+                    if (err) {
+                        console.warn(`Warning executing SQLite schema statement: ${stmt.substring(0, 50)}...`, err.message);
+                    }
+                });
+            }
+            console.log('✅ SQLite schema initialized');
+        });
+    }
+
     async query(sql, params = []) {
-        try {
-            const result = await this.pool.query(sql, params);
-            return {
-                rows: result.rows,
-                rowCount: result.rowCount,
-                lastInsertRowid: result.rows[0]?.id
-            };
-        } catch (error) {
-            console.error('Database query error:', error);
-            console.error('Query:', sql);
-            console.error('Params:', params);
-            throw error;
+        if (this.dbType === 'postgres') {
+            try {
+                const result = await this.pool.query(sql, params);
+                return {
+                    rows: result.rows,
+                    rowCount: result.rowCount,
+                    lastInsertRowid: result.rows[0]?.id
+                };
+            } catch (error) {
+                console.error('PostgreSQL Query Error:', error.message);
+                throw error;
+            }
+        } else {
+            // SQLite Query Adapter
+            return new Promise((resolve, reject) => {
+                // Convert Postgres-style parameters ($1, $2) to SQLite style (?, ?)
+                let sqliteSql = sql;
+                let paramIndex = 1;
+                while (sqliteSql.includes(`$${paramIndex}`)) {
+                    sqliteSql = sqliteSql.replace(`$${paramIndex}`, '?');
+                    paramIndex++;
+                }
+
+                // Handle ILIKE (Postgres) -> LIKE (SQLite)
+                sqliteSql = sqliteSql.replace(/ILIKE/gi, 'LIKE');
+
+                // Handle RETURNING id (Postgres) -> Remove it for SQLite (we use this.lastID)
+                const isInsert = /INSERT INTO/i.test(sqliteSql);
+                if (isInsert) {
+                    sqliteSql = sqliteSql.replace(/RETURNING id/gi, '');
+                }
+
+                if (isInsert) {
+                    this.sqliteDb.run(sqliteSql, params, function (err) {
+                        if (err) {
+                            console.error('SQLite Query Error:', err.message);
+                            reject(err);
+                        } else {
+                            resolve({
+                                rows: [{ id: this.lastID }], // Mock RETURNING id behavior
+                                rowCount: this.changes,
+                                lastInsertRowid: this.lastID
+                            });
+                        }
+                    });
+                } else {
+                    this.sqliteDb.all(sqliteSql, params, (err, rows) => {
+                        if (err) {
+                            console.error('SQLite Query Error:', err.message);
+                            reject(err);
+                        } else {
+                            resolve({
+                                rows: rows,
+                                rowCount: rows.length
+                            });
+                        }
+                    });
+                }
+            });
         }
     }
 
@@ -212,7 +433,12 @@ class DatabaseManager {
 
     async searchJobs(filters = {}) {
         let sql = 'SELECT * FROM jobs WHERE is_active = $1';
-        let params = [true];
+        let params = [true]; // Postgres: true, SQLite: 1 (handled by driver usually, but let's be safe)
+
+        if (this.dbType === 'sqlite') {
+            params = [1];
+        }
+
         let paramIndex = 2;
 
         if (filters.title) {
@@ -249,7 +475,12 @@ class DatabaseManager {
     }
 
     async close() {
-        await this.pool.end();
+        if (this.pool) await this.pool.end();
+        if (this.sqliteDb) {
+            this.sqliteDb.close((err) => {
+                if (err) console.error('Error closing SQLite database:', err.message);
+            });
+        }
     }
 }
 
