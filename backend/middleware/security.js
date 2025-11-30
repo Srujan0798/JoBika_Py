@@ -1,20 +1,60 @@
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const xss = require('xss-clean');
 const crypto = require('crypto');
 
-// Rate Limiting
-const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100,
-    message: 'Too many requests from this IP, please try again later.'
-});
+// 1. Security Headers (Helmet)
+const securityHeaders = () => {
+    return helmet({
+        contentSecurityPolicy: false, // Disable CSP for now to avoid frontend issues
+        crossOriginEmbedderPolicy: false
+    });
+};
 
+// 2. XSS Protection
+const xssProtection = () => {
+    return xss();
+};
+
+// 3. Request Timeout
+const requestTimeout = (seconds = 30) => {
+    return (req, res, next) => {
+        req.setTimeout(seconds * 1000, () => {
+            res.status(408).send('Request Timeout');
+        });
+        next();
+    };
+};
+
+// 4. Rate Limiter (General API)
+const rateLimiter = () => {
+    return rateLimit({
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 100, // Limit each IP to 100 requests per windowMs
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: { error: 'Too many requests, please try again later.' }
+    });
+};
+
+// 5. Auth Rate Limiter (Stricter)
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
-    message: 'Too many login attempts, please try again later.'
+    message: { error: 'Too many login attempts, please try again later.' }
 });
 
-// Encryption
+// 6. CORS Options
+const corsOptions = () => {
+    return {
+        origin: process.env.FRONTEND_URL || '*', // Allow all in dev, restrict in prod
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true
+    };
+};
+
+// Encryption Utilities
 const algorithm = 'aes-256-gcm';
 const key = process.env.ENCRYPTION_KEY ? Buffer.from(process.env.ENCRYPTION_KEY, 'hex') : crypto.randomBytes(32);
 const iv = crypto.randomBytes(16);
@@ -37,8 +77,12 @@ function decrypt(hash) {
 }
 
 module.exports = {
-    apiLimiter,
+    securityHeaders,
+    xssProtection,
+    requestTimeout,
+    rateLimiter,
     authLimiter,
+    corsOptions,
     encrypt,
     decrypt
 };
