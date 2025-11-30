@@ -79,8 +79,8 @@ railway domain
 
 ### 3. Update Frontend & Deploy
 ```bash
-# Edit app/assets/js/api.js
-# Change API_URL to your Railway backend URL
+# Edit frontend/.env
+# Change VITE_API_URL to your Railway backend URL
 
 # Then deploy
 vercel --prod

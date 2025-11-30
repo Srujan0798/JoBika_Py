@@ -32,10 +32,13 @@ AI:        Google Gemini + OpenAI ✅ CONFIGURED
 ### Step 1: Update Vercel Settings
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Click on your **JoBika** project (`prj_8Q0IkCnsgMAIAz43TpUTnEoa1P3s`)
-3. Go to **Settings** → **General**
-4. **Root Directory:** Edit and select `frontend`
-5. **Framework Preset:** Select `Vite`
-6. Click **Save**
+3. Go to **Settings** → **Build & Deployment**
+4. **Root Directory:** Ensure it is `frontend`
+5. **Framework Preset:** Ensure it is `Vite`
+6. **Output Directory:** ⚠️ **CHANGE THIS**
+    *   Turn **Override** to **OFF** (Default is `dist`)
+    *   *OR* Set it to `dist`
+7. Click **Save**
 
 ### Step 2: Redeploy
 1. Go to **Deployments** tab
@@ -152,7 +155,7 @@ AI:        Google Gemini + OpenAI ✅ CONFIGURED
 
 ### ⚠️ Frontend (Vercel)
 - **Issue:** White screen (Output Directory not set)
-- **Fix Required:** Set Output Directory to `app` in Vercel settings
+- **Fix Required:** Set Output Directory to `dist` (or turn override OFF) in Vercel settings
 
 ---
 
@@ -165,7 +168,7 @@ AI:        Google Gemini + OpenAI ✅ CONFIGURED
 4. Find **"Build & Development Settings"**
 5. Locate **"Output Directory"**
 6. Toggle **Override** to ON
-7. Type: **`app`**
+7. Type: **`dist`**
 8. Click **Save**
 
 ### Step 2: Redeploy
@@ -247,7 +250,7 @@ curl https://jobika-backend-production.up.railway.app/health
 ```
 
 ### Frontend Issues
-- **White Screen:** Set Output Directory to `app` in Vercel
+- **White Screen:** Set Output Directory to `dist` (or default) in Vercel
 - **404 Errors:** Ensure latest deployment is active
 - **API Errors:** Check browser console for CORS/network errors
 
@@ -263,4 +266,4 @@ See `a_CREDENTIALS.md` for:
 
 ---
 
-**Need help? The backend is working perfectly. Just fix the Vercel Output Directory setting and you're done!** 🚀
+**Need help? The backend is working perfectly. Just fix the Vercel Output Directory setting (to `dist`) and you're done!** 🚀

@@ -258,7 +258,7 @@ One-time:
 #### For JoBika Specifically:
 ```
 FREE:
--cd frontend && npm run devions/day
+- 5 applications/day
 - 3 AI chats/day
 - Basic job search
 
