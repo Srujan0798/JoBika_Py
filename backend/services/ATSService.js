@@ -112,12 +112,11 @@ class ATSService {
             Compare the candidate's experience with job requirements.
             Resume: ${resumeText.substring(0, 1000)}...
             Job: ${jobDescription.substring(0, 500)}...
-            Rate relevance 0-25. Return a JSON object with a single key "score".
-            Example: { "score": 20 }
+            Rate relevance 0-25. Return just the number.
             `;
 
-            const result = await this.gemini.generateJSON(prompt);
-            return { score: result.score || 15 };
+            const responseText = await this.gemini.chat(prompt);
+            return { score: parseInt(responseText) || 15 };
         } catch (error) {
             console.error('ATS Experience Analysis Error:', error);
             return { score: 15 }; // Fallback
