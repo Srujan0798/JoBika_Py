@@ -333,7 +333,7 @@ class DatabaseManager {
             try {
                 // Ensure params is an array
                 const queryParams = Array.isArray(params) ? params : [];
-                
+
                 const result = await this.pool.query(sql, queryParams);
                 return {
                     rows: result.rows,
@@ -419,6 +419,19 @@ class DatabaseManager {
             return result.rows[0] || null;
         } catch (error) {
             console.error('Error getting user:', error);
+            return null;
+        }
+    }
+
+    async getUserByEmail(email) {
+        try {
+            const result = await this.safeQuery(
+                'SELECT * FROM users WHERE email = $1',
+                [email]
+            );
+            return result.rows[0] || null;
+        } catch (error) {
+            console.error('Error getting user by email:', error);
             return null;
         }
     }
