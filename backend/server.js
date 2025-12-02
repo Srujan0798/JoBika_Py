@@ -488,7 +488,7 @@ if (require.main === module) {
     });
 
     server = httpServer.listen(port, () => {
-        console.log(`\n🚀 JoBika Backend Server Running`);
+        console.log(`\n🚀 JoBika Backend Server Running (Production Build)`);
         console.log(`📍 Port: ${port} `);
         console.log(`💾 Database: ${db.dbPath} `);
         console.log(`🤖 Gemini AI: ${process.env.GEMINI_API_KEY ? '✅ Configured (FREE!)' : '❌ Not configured - Get FREE key: https://aistudio.google.com/app/apikey'} `);
