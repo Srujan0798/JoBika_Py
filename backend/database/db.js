@@ -1,3 +1,7 @@
+const dns = require('dns');
+// CRITICAL: Force IPv4 BEFORE any database connections
+dns.setDefaultResultOrder('ipv4first');
+
 const { Pool } = require('pg');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
@@ -52,13 +56,7 @@ class DatabaseManager {
             } : false,
             max: 20,
             idleTimeoutMillis: 30000,
-            connectionTimeoutMillis: 5000,
-            // Force IPv4 to avoid ENETUNREACH errors
-            host: 'db.eabkwiklxjbqbfxcdlkk.supabase.co',
-            port: 5432,
-            database: 'postgres',
-            user: 'postgres',
-            password: process.env.DATABASE_URL?.match(/:([^@]+)@/)?.[1] || '23110081aiiTgn'
+            connectionTimeoutMillis: 5000
         });
 
         this.pool.on('error', (err) => {
