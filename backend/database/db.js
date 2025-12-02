@@ -49,15 +49,22 @@ class DatabaseManager {
     }
 
     initPostgres() {
-        this.pool = new Pool({
-            connectionString: process.env.DATABASE_URL,
-            ssl: process.env.DATABASE_SSL === 'require' ? {
+        // Use explicit connection params to force IPv4 and use pooler
+        const dbConfig = {
+            host: 'aws-0-ap-south-1.pooler.supabase.com',
+            port: 5432, // Use 5432 for Transaction mode, not 6543
+            database: 'postgres',
+            user: 'postgres.eabkwiklxjbqbfxcdlkk',
+            password: '23110081aiiTgn',
+            ssl: {
                 rejectUnauthorized: false
-            } : false,
+            },
             max: 20,
             idleTimeoutMillis: 30000,
-            connectionTimeoutMillis: 5000
-        });
+            connectionTimeoutMillis: 10000
+        };
+
+        this.pool = new Pool(dbConfig);
 
         this.pool.on('error', (err) => {
             console.error('Unexpected PostgreSQL error', err);
