@@ -209,6 +209,13 @@ class DatabaseManager {
             CREATE INDEX IF NOT EXISTS idx_jobs_company ON jobs(company);
             CREATE INDEX IF NOT EXISTS idx_jobs_location ON jobs(location);
             CREATE INDEX IF NOT EXISTS idx_chat_user_id ON chat_history(user_id);
+            CREATE INDEX IF NOT EXISTS idx_resumes_user_id ON resumes(user_id);
+            CREATE INDEX IF NOT EXISTS idx_job_matches_user_id ON job_matches(user_id);
+            CREATE INDEX IF NOT EXISTS idx_job_matches_score ON job_matches(match_score);
+            CREATE INDEX IF NOT EXISTS idx_resume_versions_user_id ON resume_versions(user_id);
+            CREATE INDEX IF NOT EXISTS idx_resume_versions_job_id ON resume_versions(job_id);
+            CREATE INDEX IF NOT EXISTS idx_saved_jobs_user_id ON saved_jobs(user_id);
+            CREATE INDEX IF NOT EXISTS idx_job_alerts_user_id ON job_alerts(user_id);
         `;
 
         const statements = schema.split(';').filter(s => s.trim());
@@ -347,6 +354,20 @@ class DatabaseManager {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(user_id) REFERENCES users(id)
             );
+
+            CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
+            CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
+            CREATE INDEX IF NOT EXISTS idx_jobs_is_active ON jobs(is_active);
+            CREATE INDEX IF NOT EXISTS idx_jobs_company ON jobs(company);
+            CREATE INDEX IF NOT EXISTS idx_jobs_location ON jobs(location);
+            CREATE INDEX IF NOT EXISTS idx_chat_user_id ON chat_history(user_id);
+            CREATE INDEX IF NOT EXISTS idx_resumes_user_id ON resumes(user_id);
+            CREATE INDEX IF NOT EXISTS idx_job_matches_user_id ON job_matches(user_id);
+            CREATE INDEX IF NOT EXISTS idx_job_matches_score ON job_matches(match_score);
+            CREATE INDEX IF NOT EXISTS idx_resume_versions_user_id ON resume_versions(user_id);
+            CREATE INDEX IF NOT EXISTS idx_resume_versions_job_id ON resume_versions(job_id);
+            CREATE INDEX IF NOT EXISTS idx_saved_jobs_user_id ON saved_jobs(user_id);
+            CREATE INDEX IF NOT EXISTS idx_job_alerts_user_id ON job_alerts(user_id);
         `;
 
         this.sqliteDb.serialize(() => {

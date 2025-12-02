@@ -25,7 +25,13 @@ const OrionCoachService = require('./services/OrionCoachService');
 const JobScraper = require('./services/JobScraper');
 const ATSService = require('./services/ATSService');
 const ResumeTailoringService = require('./services/ResumeTailoringService');
+const ResumeTailoringService = require('./services/ResumeTailoringService');
 const ApplicationFormFiller = require('./services/ApplicationFormFiller');
+const EmailService = require('./services/EmailService');
+const EmailService = require('./services/EmailService');
+const cache = require('./utils/CacheService');
+const logger = require('./utils/Logger');
+const morgan = require('morgan');
 
 const app = express();
 // Enable trust proxy for Railway/Vercel
@@ -37,6 +43,9 @@ app.use(security.securityHeaders());
 app.use(security.xssProtection());
 app.use(security.requestTimeout());
 app.use(security.rateLimiter());
+
+// Logging Middleware
+app.use(morgan('combined', { stream: logger.stream }));
 
 // CORS
 app.use(cors(security.corsOptions()));
@@ -59,7 +68,7 @@ app.use(express.static('../app'));
 
 // Import resilience patterns
 const { dbCircuitBreaker, apiRetry, gracefulDegradation } = require('./utils/resiliencePatterns');
-const { validate, validateQuery, jobSearchSchema, chatMessageSchema, alertSchema } = require('./middleware/validation');
+const { validate, validateQuery, jobSearchSchema, chatMessageSchema, alertSchema, autoApplyRequestSchema, tailorResumeSchema } = require('./middleware/validation');
 
 // Register graceful degradation fallbacks
 gracefulDegradation.registerFallback('jobs', async () => {
@@ -113,9 +122,12 @@ app.use('/api/payments', require('./routes/payments'));
 
 // ====== ORION AI CHAT ROUTES ======
 
-app.post('/api/orion/chat', authMiddleware, async (req, res) => {
+app.post('/api/orion/chat', authMiddleware, validate(chatMessageSchema), async (req, res) => {
     try {
         const { message, folder } = req.body;
+
+        // Check and track usage
+        await SubscriptionManager.trackUsage(req.userId, 'chat');
 
         // Save user message
         db.saveChatMessage(req.userId, 'user', message, folder || 'All');
@@ -237,9 +249,12 @@ Provide:
 
 // ====== RESUME TAILORING (CORE FEATURE) ======
 
-app.post('/api/tailor-resume', authMiddleware, async (req, res) => {
+app.post('/api/tailor-resume', authMiddleware, validate(tailorResumeSchema), async (req, res) => {
     try {
         const { resumeId, jobId } = req.body;
+
+        // Check and track usage
+        await SubscriptionManager.trackUsage(req.userId, 'resume_tailor');
 
         // Get user's resume
         const resume = db.getLatestResume(req.userId);
@@ -295,9 +310,12 @@ VALUES($1, $2, $3, $4, $5, NOW())
 
 // ====== AUTO-APPLY (CORE FEATURE) ======
 
-app.post('/api/auto-apply', authMiddleware, async (req, res) => {
+app.post('/api/auto-apply', authMiddleware, validate(autoApplyRequestSchema), async (req, res) => {
     try {
         const { jobId, supervised = true } = req.body;
+
+        // Check and track usage
+        await SubscriptionManager.trackUsage(req.userId, 'application');
 
         // Get user data
         const user = db.getUserById(req.userId);
@@ -357,6 +375,15 @@ app.post('/api/auto-apply', authMiddleware, async (req, res) => {
                 job_url: job.source_url || job.url,
                 status: result.status === 'submitted' ? 'Applied' : 'Draft'
             });
+
+            // Send confirmation email
+            if (result.status === 'submitted') {
+                EmailService.sendApplicationUpdate(user, {
+                    role: job.title,
+                    company: job.company,
+                    status: 'Applied Successfully 🚀'
+                });
+            }
         }
 
         res.json({ success: true, result });
@@ -371,6 +398,15 @@ app.post('/api/auto-apply', authMiddleware, async (req, res) => {
 app.post('/api/batch-auto-apply', authMiddleware, async (req, res) => {
     try {
         const { minMatchScore = 75, maxApplications = 20, supervised = false } = req.body;
+
+        // Gate: Only for Premium users (Agent Enabled)
+        const hasAgent = await SubscriptionManager.hasFeature(req.userId, 'agent_enabled');
+        if (!hasAgent) {
+            return res.status(403).json({
+                error: 'Feature not available',
+                message: 'Batch Auto-Apply is a Premium feature. Upgrade to Premium to unlock the AI Agent.'
+            });
+        }
 
         // Get high-match jobs for user
         const highMatchJobs = await db.query(`
@@ -482,7 +518,13 @@ if (require.main === module) {
                 socket.emit("chat:end", { fullResponse: response });
 
             } catch (error) {
-                socket.emit("chat:error", { error: "Failed to get response" });
+                console.error("Chat error:", error);
+                socket.emit("chat:error", {
+                    error: error.message || "Failed to get response",
+                    statusCode: error.statusCode || 500,
+                    tier: error.tier,
+                    limitKey: error.limitKey
+                });
             }
         });
 
@@ -492,12 +534,12 @@ if (require.main === module) {
     });
 
     server = httpServer.listen(port, () => {
-        console.log(`\n🚀 JoBika Backend Server Running (Production Build)`);
-        console.log(`📍 Port: ${port} `);
-        console.log(`💾 Database: ${db.dbPath} `);
-        console.log(`🤖 Gemini AI: ${process.env.GEMINI_API_KEY ? '✅ Configured (FREE!)' : '❌ Not configured - Get FREE key: https://aistudio.google.com/app/apikey'} `);
-        console.log(`⚡ Socket.io: Enabled for Real-Time Chat`);
-        console.log(`\n✨ All systems ready!\n`);
+        logger.info(`🚀 JoBika Backend Server Running (Production Build)`);
+        logger.info(`📍 Port: ${port}`);
+        logger.info(`💾 Database: ${db.dbPath}`);
+        logger.info(`🤖 Gemini AI: ${process.env.GEMINI_API_KEY ? '✅ Configured' : '❌ Not configured'}`);
+        logger.info(`⚡ Socket.io: Enabled for Real-Time Chat`);
+        logger.info(`✨ All systems ready!`);
     });
 }
 
@@ -528,10 +570,11 @@ app.post('/api/performance', (req, res) => {
 app.post('/api/log-error', (req, res) => {
     try {
         const errorData = req.body;
-        console.error('Frontend Error:', errorData);
+        logger.error('Frontend Error:', { error: errorData });
         // In production, send to error tracking service (Sentry)
         res.json({ success: true });
     } catch (error) {
+        logger.error('Error logging frontend error:', error);
         res.status(500).json({ error: error.message });
     }
 });

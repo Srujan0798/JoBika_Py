@@ -8,8 +8,10 @@ import { Upload, FileText, CheckCircle, AlertCircle, Loader2, ArrowLeft } from "
 export default function ResumeUpload() {
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [analyzing, setAnalyzing] = useState(false);
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
     const [message, setMessage] = useState("");
+    const [analysisResult, setAnalysisResult] = useState<any>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -55,12 +57,32 @@ export default function ResumeUpload() {
             }
 
             setStatus("success");
-            setMessage("Resume uploaded and parsed successfully!");
+            setMessage("Resume uploaded successfully! Analyzing...");
+
+            // Trigger Analysis
+            setAnalyzing(true);
+            const analyzeRes = await fetch(`${API_BASE_URL}/api/resumes/analyze/${data.resumeId}`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const analyzeData = await analyzeRes.json();
+
+            if (analyzeData.success) {
+                setAnalysisResult(analyzeData.analysis);
+                setMessage("Resume analyzed successfully!");
+            } else {
+                setMessage("Resume uploaded, but analysis failed.");
+            }
+
         } catch (err: any) {
             setStatus("error");
             setMessage(err.message);
         } finally {
             setUploading(false);
+            setAnalyzing(false);
         }
     };
 
@@ -122,13 +144,13 @@ export default function ResumeUpload() {
 
                         <button
                             onClick={handleUpload}
-                            disabled={!file || uploading}
+                            disabled={!file || uploading || analyzing}
                             className="w-full bg-primary text-white py-3 rounded-xl font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                         >
-                            {uploading ? (
+                            {uploading || analyzing ? (
                                 <>
                                     <Loader2 className="w-5 h-5 animate-spin" />
-                                    Parsing Resume...
+                                    {uploading ? "Uploading..." : "Analyzing with AI..."}
                                 </>
                             ) : (
                                 "Upload & Analyze"
@@ -136,6 +158,82 @@ export default function ResumeUpload() {
                         </button>
                     </div>
                 </div>
+
+                {analysisResult && (
+                    <div className="mt-8 bg-white rounded-2xl shadow-xl border border-muted/20 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="p-8 border-b border-muted/20 bg-gradient-to-r from-primary/5 to-transparent">
+                            <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                                <CheckCircle className="w-6 h-6 text-primary" />
+                                Smart Analysis Results
+                            </h2>
+                        </div>
+                        <div className="p-8 space-y-8">
+                            {/* Score Section */}
+                            <div className="flex items-center justify-center">
+                                <div className="relative w-32 h-32 flex items-center justify-center rounded-full border-8 border-muted/20">
+                                    <div
+                                        className="absolute inset-0 rounded-full border-8 border-primary border-t-transparent transform -rotate-45"
+                                        style={{ clipPath: `polygon(0 0, 100% 0, 100% ${analysisResult.atsScore}%, 0 ${analysisResult.atsScore}%)` }}
+                                    ></div>
+                                    <div className="text-center">
+                                        <span className="text-3xl font-bold text-primary">{analysisResult.atsScore}</span>
+                                        <span className="block text-xs text-muted-foreground uppercase tracking-wider font-semibold">ATS Score</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Summary */}
+                            <div className="bg-muted/30 p-6 rounded-xl">
+                                <h3 className="font-semibold text-lg mb-2">Summary</h3>
+                                <p className="text-muted-foreground">{analysisResult.summary}</p>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-8">
+                                {/* Strengths */}
+                                <div>
+                                    <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-green-600">
+                                        <CheckCircle className="w-5 h-5" /> Strengths
+                                    </h3>
+                                    <ul className="space-y-3">
+                                        {analysisResult.strengths?.map((item: string, i: number) => (
+                                            <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0" />
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                {/* Weaknesses */}
+                                <div>
+                                    <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-orange-600">
+                                        <AlertCircle className="w-5 h-5" /> Improvements
+                                    </h3>
+                                    <ul className="space-y-3">
+                                        {analysisResult.weaknesses?.map((item: string, i: number) => (
+                                            <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                                <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 flex-shrink-0" />
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+
+                            {/* Suggestions */}
+                            <div>
+                                <h3 className="font-semibold text-lg mb-4">Actionable Suggestions</h3>
+                                <div className="grid gap-3">
+                                    {analysisResult.suggestions?.map((item: string, i: number) => (
+                                        <div key={i} className="bg-primary/5 p-4 rounded-lg text-sm text-foreground border border-primary/10">
+                                            💡 {item}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

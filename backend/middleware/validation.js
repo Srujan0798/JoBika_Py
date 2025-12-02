@@ -80,6 +80,18 @@ const alertSchema = z.object({
     salaryMin: z.number().int().min(0).optional()
 });
 
+// Simple Auto-Apply Request Schema (for API endpoint)
+const autoApplyRequestSchema = z.object({
+    jobId: z.string().or(z.number()),
+    supervised: z.boolean().optional().default(true)
+});
+
+// Tailor Resume Schema
+const tailorResumeSchema = z.object({
+    resumeId: z.number().optional(),
+    jobId: z.string().or(z.number())
+});
+
 /**
  * Validation Middleware Factory
  * Usage: app.post('/api/endpoint', validate(schema), handler)
@@ -163,6 +175,8 @@ module.exports = {
     chatMessageSchema,
     resumeUploadSchema,
     autoApplySchema,
+    autoApplyRequestSchema,
+    tailorResumeSchema,
     alertSchema,
 
     // Middleware

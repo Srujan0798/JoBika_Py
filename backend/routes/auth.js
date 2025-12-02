@@ -4,6 +4,7 @@ const AuthService = require('../services/AuthService');
 const authService = new AuthService();
 const db = require('../database/db');
 const authMiddleware = require('../middleware/auth');
+const EmailService = require('../services/EmailService');
 
 router.post('/register', async (req, res) => {
     try {
@@ -18,6 +19,9 @@ router.post('/register', async (req, res) => {
             currentRole, currentCompany, totalYears,
             currentCtc, expectedCtc, noticePeriod, skills, preferences
         });
+
+        // Send Welcome Email
+        await EmailService.sendWelcomeEmail({ name, email });
 
         res.status(201).json(result);
     } catch (error) {

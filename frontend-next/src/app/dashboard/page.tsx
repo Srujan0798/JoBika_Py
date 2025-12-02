@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { API_BASE_URL } from "@/lib/config";
-import { Search, MapPin, Briefcase, IndianRupee, Clock, Building2, LogOut, Zap } from "lucide-react";
+import { Search, MapPin, Briefcase, IndianRupee, Clock, Building2, LogOut, Zap, Menu, X } from "lucide-react";
 
 interface Job {
     id: string;
@@ -25,6 +25,8 @@ export default function Dashboard() {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<any>(null);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         // Check auth
@@ -102,125 +104,179 @@ export default function Dashboard() {
                         </button>
                     </div>
                 </div>
-            </nav>
 
-            <main className="container mx-auto px-4 py-8">
-                <div className="flex flex-col md:flex-row gap-8">
-                    {/* Sidebar */}
-                    <aside className="w-full md:w-64 space-y-4">
-                        <div className="bg-white p-4 rounded-xl border border-muted/20 shadow-sm">
-                            <h3 className="font-bold mb-4 text-foreground">Menu</h3>
-                            <nav className="space-y-2">
-                                <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg font-medium">
-                                    <Briefcase className="w-4 h-4" />
-                                    Find Jobs
-                                </Link>
-                                <Link href="/applications" className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors">
-                                    <Clock className="w-4 h-4" />
-                                    Tracker
-                                </Link>
-                                <Link href="/resumes" className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors">
-                                    <Briefcase className="w-4 h-4" />
-                                    Resumes
-                                </Link>
-                                <Link href="/coach" className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors">
-                                    <Zap className="w-4 h-4" />
-                                    AI Coach
-                                </Link>
-                                <Link href="/profile" className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors">
-                                    <Building2 className="w-4 h-4" />
-                                    My Profile
-                                </Link>
-                            </nav>
+                {/* Mobile Menu Toggle */}
+                <button
+                    className="md:hidden p-2 text-muted-foreground"
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                >
+                    {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
+        </div>
+            </nav >
 
-                            <div className="mt-6 pt-6 border-t border-muted/20">
-                                <Link href="/pricing" className="block bg-gradient-to-r from-primary to-secondary text-white p-4 rounded-xl text-center hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
-                                    <div className="flex items-center justify-center gap-2 font-bold mb-1">
-                                        <Zap className="w-4 h-4 fill-white" />
-                                        Upgrade to Pro
-                                    </div>
-                                    <p className="text-xs text-white/90">Get AI coaching & more</p>
-                                </Link>
-                            </div>
+        {/* Mobile Menu Overlay */ }
+    {
+        isMobileMenuOpen && (
+            <div className="fixed inset-0 z-40 bg-white pt-20 px-4 md:hidden animate-in slide-in-from-top-10 duration-200">
+                <nav className="space-y-4">
+                    <Link href="/dashboard" className="flex items-center gap-3 px-3 py-3 bg-primary/10 text-primary rounded-lg font-medium text-lg">
+                        <Briefcase className="w-5 h-5" />
+                        Find Jobs
+                    </Link>
+                    <Link href="/applications" className="flex items-center gap-3 px-3 py-3 text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors text-lg">
+                        <Clock className="w-5 h-5" />
+                        Tracker
+                    </Link>
+                    <Link href="/resumes" className="flex items-center gap-3 px-3 py-3 text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors text-lg">
+                        <Briefcase className="w-5 h-5" />
+                        Resumes
+                    </Link>
+                    <Link href="/coach" className="flex items-center gap-3 px-3 py-3 text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors text-lg">
+                        <Zap className="w-5 h-5" />
+                        AI Coach
+                    </Link>
+                    <Link href="/profile" className="flex items-center gap-3 px-3 py-3 text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors text-lg">
+                        <Building2 className="w-5 h-5" />
+                        My Profile
+                    </Link>
+                    <div className="pt-4 border-t border-muted/20">
+                        <div className="flex items-center justify-between mb-4">
+                            <span className="font-medium text-muted-foreground">Signed in as {user?.name}</span>
+                            <button
+                                onClick={handleLogout}
+                                className="text-red-500 font-medium flex items-center gap-2"
+                            >
+                                <LogOut className="w-4 h-4" />
+                                Logout
+                            </button>
                         </div>
-                    </aside>
+                        <Link href="/pricing" className="block w-full bg-gradient-to-r from-primary to-secondary text-white p-4 rounded-xl text-center font-bold shadow-lg shadow-primary/20">
+                            Upgrade to Pro
+                        </Link>
+                    </div>
+                </nav>
+            </div>
+        )
+    }
 
-                    {/* Job Feed */}
-                    <div className="flex-1">
-                        <h1 className="text-2xl font-bold mb-6">Recommended Jobs</h1>
+    <main className="container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row gap-8">
+            {/* Sidebar */}
+            <aside className="w-full md:w-64 space-y-4">
+                <div className="bg-white p-4 rounded-xl border border-muted/20 shadow-sm">
+                    <h3 className="font-bold mb-4 text-foreground">Menu</h3>
+                    <nav className="space-y-2">
+                        <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg font-medium">
+                            <Briefcase className="w-4 h-4" />
+                            Find Jobs
+                        </Link>
+                        <Link href="/applications" className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors">
+                            <Clock className="w-4 h-4" />
+                            Tracker
+                        </Link>
+                        <Link href="/resumes" className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors">
+                            <Briefcase className="w-4 h-4" />
+                            Resumes
+                        </Link>
+                        <Link href="/coach" className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors">
+                            <Zap className="w-4 h-4" />
+                            AI Coach
+                        </Link>
+                        <Link href="/profile" className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-muted/50 rounded-lg transition-colors">
+                            <Building2 className="w-4 h-4" />
+                            My Profile
+                        </Link>
+                    </nav>
 
-                        {loading ? (
-                            <div className="space-y-4">
-                                {[1, 2, 3].map((i) => (
-                                    <div key={i} className="h-40 bg-white rounded-xl animate-pulse" />
-                                ))}
+                    <div className="mt-6 pt-6 border-t border-muted/20">
+                        <Link href="/pricing" className="block bg-gradient-to-r from-primary to-secondary text-white p-4 rounded-xl text-center hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
+                            <div className="flex items-center justify-center gap-2 font-bold mb-1">
+                                <Zap className="w-4 h-4 fill-white" />
+                                Upgrade to Pro
                             </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {jobs.map((job) => (
-                                    <div key={job.id} className="bg-white p-6 rounded-xl border border-muted/20 hover:border-primary/30 hover:shadow-md transition-all group">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
-                                                        {job.title}
-                                                    </h3>
-                                                    {job.match_score && job.match_score > 0 && (
-                                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${job.match_score >= 80 ? 'bg-green-100 text-green-700 border-green-200' :
-                                                            job.match_score >= 50 ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                                                                'bg-gray-100 text-gray-700 border-gray-200'
-                                                            }`}>
-                                                            {job.match_score}% Match
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="text-muted-foreground font-medium">{job.company}</p>
-                                            </div>
-                                            <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2 py-1 rounded-full border border-blue-100">
-                                                {job.source || "Direct"}
+                            <p className="text-xs text-white/90">Get AI coaching & more</p>
+                        </Link>
+                    </div>
+                </div>
+            </aside>
+
+            {/* Job Feed */}
+            <div className="flex-1">
+                <h1 className="text-2xl font-bold mb-6">Recommended Jobs</h1>
+
+                {loading ? (
+                    <div className="space-y-4">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="h-40 bg-white rounded-xl animate-pulse" />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {jobs.map((job) => (
+                            <div key={job.id} className="bg-white p-6 rounded-xl border border-muted/20 hover:border-primary/30 hover:shadow-md transition-all group">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                                                {job.title}
+                                            </h3>
+                                            {job.match_score && job.match_score > 0 && (
+                                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${job.match_score >= 80 ? 'bg-green-100 text-green-700 border-green-200' :
+                                                    job.match_score >= 50 ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+                                                        'bg-gray-100 text-gray-700 border-gray-200'
+                                                    }`}>
+                                                    {job.match_score}% Match
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-muted-foreground font-medium">{job.company}</p>
+                                    </div>
+                                    <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2 py-1 rounded-full border border-blue-100">
+                                        {job.source || "Direct"}
+                                    </span>
+                                </div>
+
+                                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
+                                    <div className="flex items-center gap-1">
+                                        <MapPin className="w-4 h-4" />
+                                        {job.location || "Remote"}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <IndianRupee className="w-4 h-4" />
+                                        {formatSalary(job.salary_min, job.salary_max)}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Clock className="w-4 h-4" />
+                                        {job.experience_min}-{job.experience_max} Yrs
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between pt-4 border-t border-muted/10">
+                                    <div className="flex gap-2">
+                                        {job.skills_required && JSON.parse(job.skills_required || "[]").slice(0, 3).map((skill: string) => (
+                                            <span key={skill} className="text-xs bg-muted/50 px-2 py-1 rounded-md text-muted-foreground">
+                                                {skill}
                                             </span>
-                                        </div>
-
-                                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-                                            <div className="flex items-center gap-1">
-                                                <MapPin className="w-4 h-4" />
-                                                {job.location || "Remote"}
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <IndianRupee className="w-4 h-4" />
-                                                {formatSalary(job.salary_min, job.salary_max)}
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Clock className="w-4 h-4" />
-                                                {job.experience_min}-{job.experience_max} Yrs
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center justify-between pt-4 border-t border-muted/10">
-                                            <div className="flex gap-2">
-                                                {job.skills_required && JSON.parse(job.skills_required || "[]").slice(0, 3).map((skill: string) => (
-                                                    <span key={skill} className="text-xs bg-muted/50 px-2 py-1 rounded-md text-muted-foreground">
-                                                        {skill}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                            <Link href={`/job/${job.id}`} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
-                                                Apply Now
-                                            </Link>
-                                        </div>
+                                        ))}
                                     </div>
-                                ))}
+                                    <Link href={`/job/${job.id}`} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+                                        Apply Now
+                                    </Link>
+                                </div>
+                            </div>
+                        ))}
 
-                                {jobs.length === 0 && (
-                                    <div className="text-center py-12 bg-white rounded-xl border border-muted/20">
-                                        <p className="text-muted-foreground">No jobs found matching your profile.</p>
-                                    </div>
-                                )}
+                        {jobs.length === 0 && (
+                            <div className="text-center py-12 bg-white rounded-xl border border-muted/20">
+                                <p className="text-muted-foreground">No jobs found matching your profile.</p>
                             </div>
                         )}
                     </div>
-                </div>
-            </main>
+                )}
+            </div>
         </div>
+    </main>
+        </div >
     );
 }

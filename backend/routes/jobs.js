@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
 const authMiddleware = require('../middleware/auth');
-const cache = require('../services/CacheService');
+const authMiddleware = require('../middleware/auth');
+const cache = require('../utils/CacheService');
 
 // GET /api/jobs - Search jobs
 router.get('/', async (req, res) => {
@@ -91,12 +92,20 @@ router.get('/', async (req, res) => {
 // GET /api/jobs/:id - Job details
 router.get('/:id', async (req, res) => {
     try {
+        const cacheKey = `job_${req.params.id}`;
+        const cachedJob = await cache.get(cacheKey);
+        if (cachedJob) {
+            return res.json(cachedJob);
+        }
+
         const result = await db.query('SELECT * FROM jobs WHERE id = ?', [req.params.id]);
         const job = result.rows ? result.rows[0] : result[0];
 
         if (!job) {
             return res.status(404).json({ error: 'Job not found' });
         }
+
+        await cache.set(cacheKey, job, 600); // Cache for 10 minutes
         res.json(job);
     } catch (error) {
         console.error('Error fetching job:', error);

@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { API_BASE_URL } from "@/lib/config";
+import Script from "next/script";
 import { Check, Star, Zap, Shield, ArrowLeft, Loader2 } from "lucide-react";
+
+declare global {
+    interface Window {
+        Razorpay: any;
+    }
+}
 
 interface Plan {
     id: string;
@@ -21,24 +28,38 @@ export default function PricingPage() {
     const [processing, setProcessing] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchPlans();
+        // Hardcoded plans for now
+        setPlans([
+            {
+                id: "free",
+                name: "Free",
+                price: 0,
+                features: ["10 AI Credits/mo", "Basic Job Search", "1 Resume Upload"],
+                recommended: false
+            },
+            {
+                id: "starter",
+                name: "Starter",
+                price: 499,
+                interval: "mo",
+                features: ["50 AI Credits/mo", "Unlimited Resume Tailoring", "Priority Support", "Advanced Analytics"],
+                recommended: true
+            },
+            {
+                id: "pro",
+                name: "Pro",
+                price: 999,
+                interval: "mo",
+                features: ["200 AI Credits/mo", "Auto-Apply Agent", "Dedicated Career Coach", "All Features Unlocked"],
+                recommended: false
+            }
+        ]);
+        setLoading(false);
     }, []);
 
-    const fetchPlans = async () => {
-        try {
-            const res = await fetch(`${API_BASE_URL}/api/payments/plans`);
-            const data = await res.json();
-            if (Array.isArray(data)) {
-                setPlans(data);
-            }
-        } catch (error) {
-            console.error("Failed to fetch plans:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const handleSubscribe = async (planId: string, price: number) => {
+        if (price === 0) return; // Free plan
 
-    const handleSubscribe = async (planId: string) => {
         setProcessing(planId);
         try {
             const token = localStorage.getItem("token");
@@ -54,38 +75,74 @@ export default function PricingPage() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify({ planId })
+                body: JSON.stringify({
+                    amount: price,
+                    currency: "INR",
+                    planId
+                })
             });
             const orderData = await orderRes.json();
 
-            if (orderData.id) {
-                // 2. Simulate Payment Verification (Mock)
-                // In real app, this would be Razorpay checkout
-                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
-
-                const verifyRes = await fetch(`${API_BASE_URL}/api/payments/verify`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        orderId: orderData.id,
-                        paymentId: "pay_mock_123",
-                        signature: "sig_mock_123",
-                        planId
-                    })
-                });
-                const verifyData = await verifyRes.json();
-
-                if (verifyData.success) {
-                    alert(`Successfully subscribed to ${planId.toUpperCase()} plan!`);
-                    window.location.href = "/dashboard";
-                }
+            if (!orderData.success) {
+                throw new Error(orderData.error || "Failed to create order");
             }
-        } catch (error) {
+
+            // 2. Open Razorpay
+            const options = {
+                key: orderData.key_id,
+                amount: orderData.order.amount,
+                currency: orderData.order.currency,
+                name: "JoBika Premium",
+                description: `Subscription for ${planId} plan`,
+                order_id: orderData.order.id,
+                handler: async function (response: any) {
+                    // 3. Verify Payment
+                    try {
+                        const verifyRes = await fetch(`${API_BASE_URL}/api/payments/verify`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                planId
+                            })
+                        });
+                        const verifyData = await verifyRes.json();
+
+                        if (verifyData.success) {
+                            alert(`Successfully subscribed to ${planId.toUpperCase()} plan!`);
+                            window.location.href = "/dashboard";
+                        } else {
+                            alert("Payment verification failed.");
+                        }
+                    } catch (err) {
+                        console.error("Verification error:", err);
+                        alert("Payment verification failed.");
+                    }
+                },
+                prefill: {
+                    name: "User Name", // Ideally fetch from user profile
+                    email: "user@example.com",
+                    contact: "9999999999"
+                },
+                theme: {
+                    color: "#10B981" // Primary color
+                }
+            };
+
+            const rzp1 = new window.Razorpay(options);
+            rzp1.on('payment.failed', function (response: any) {
+                alert(response.error.description);
+            });
+            rzp1.open();
+
+        } catch (error: any) {
             console.error("Subscription failed:", error);
-            alert("Subscription failed. Please try again.");
+            alert(error.message || "Subscription failed. Please try again.");
         } finally {
             setProcessing(null);
         }
@@ -149,7 +206,7 @@ export default function PricingPage() {
                                 </ul>
 
                                 <button
-                                    onClick={() => handleSubscribe(plan.id)}
+                                    onClick={() => handleSubscribe(plan.id, plan.price)}
                                     disabled={!!processing}
                                     className={`w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${plan.recommended
                                         ? "bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/25"
@@ -179,6 +236,7 @@ export default function PricingPage() {
                     </p>
                 </div>
             </div>
+            <Script src="https://checkout.razorpay.com/v1/checkout.js" />
         </div>
     );
 }

@@ -26,6 +26,7 @@ export default function CoachPage() {
     ]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -71,9 +72,13 @@ export default function CoachPage() {
             });
         });
 
-        socket.on("chat:error", () => {
+        socket.on("chat:error", (data: any) => {
             setLoading(false);
-            alert("Connection error. Please try again.");
+            if (data.statusCode === 402) {
+                setShowUpgradeModal(true);
+            } else {
+                alert(data.error || "Connection error. Please try again.");
+            }
         });
 
         return () => {
@@ -115,7 +120,7 @@ export default function CoachPage() {
     };
 
     return (
-        <div className="flex h-screen bg-muted/30">
+        <div className="flex h-[100dvh] bg-muted/30">
             {/* Sidebar */}
             <div className="w-64 bg-white border-r border-muted/20 hidden md:flex flex-col">
                 <div className="p-6 border-b border-muted/20">
@@ -212,5 +217,37 @@ export default function CoachPage() {
                 </div>
             </div>
         </div>
+
+            {/* Upgrade Modal */ }
+    {
+        showUpgradeModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-2xl animate-in fade-in zoom-in duration-200">
+                    <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Sparkles className="w-8 h-8 text-yellow-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-foreground mb-2">Daily Limit Reached</h2>
+                    <p className="text-muted-foreground mb-8">
+                        You've used all your free AI chat messages for today. Upgrade to Pro for unlimited coaching!
+                    </p>
+                    <div className="flex flex-col gap-3">
+                        <Link
+                            href="/pricing"
+                            className="w-full bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors"
+                        >
+                            Upgrade to Pro
+                        </Link>
+                        <button
+                            onClick={() => setShowUpgradeModal(false)}
+                            className="text-muted-foreground hover:text-foreground text-sm font-medium"
+                        >
+                            Maybe Later
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+        </div >
     );
 }

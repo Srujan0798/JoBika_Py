@@ -39,6 +39,9 @@ export default function JobDetailsPage() {
     const [applyStatus, setApplyStatus] = useState<"idle" | "success" | "error">("idle");
     const [connections, setConnections] = useState<Connection[]>([]);
     const [loadingConnections, setLoadingConnections] = useState(false);
+    const [matchAnalysis, setMatchAnalysis] = useState<any>(null);
+    const [analyzingMatch, setAnalyzingMatch] = useState(false);
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
     useEffect(() => {
         if (params.id) {
@@ -117,6 +120,13 @@ export default function JobDetailsPage() {
                 })
             });
             const data = await res.json();
+
+            if (res.status === 402) {
+                setShowUpgradeModal(true);
+                setApplyStatus("idle");
+                return;
+            }
+
             if (data.success || data.result?.isMock) {
                 setApplyStatus("success");
             } else {
@@ -210,6 +220,63 @@ export default function JobDetailsPage() {
 
                     {/* Sidebar */}
                     <div className="space-y-6">
+                        {/* AI Match Widget */}
+                        <div className="bg-white rounded-xl p-6 border border-muted/20 shadow-sm">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Zap className="w-5 h-5 text-yellow-500" />
+                                <h3 className="font-semibold text-foreground">AI Match Analysis</h3>
+                            </div>
+
+                            {!matchAnalysis ? (
+                                <div className="text-center">
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                        See how well your resume fits this role.
+                                    </p>
+                                    <button
+                                        onClick={handleAnalyzeMatch}
+                                        disabled={analyzingMatch}
+                                        className="w-full bg-primary/10 text-primary hover:bg-primary/20 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        {analyzingMatch ? (
+                                            <>Analyzing...</>
+                                        ) : (
+                                            "Analyze Fit"
+                                        )}
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-muted-foreground">Match Score</span>
+                                        <span className="text-xl font-bold text-primary">{matchAnalysis.matchPercentage}%</span>
+                                    </div>
+                                    <div className="w-full bg-muted rounded-full h-2">
+                                        <div
+                                            className="bg-primary h-2 rounded-full transition-all duration-1000"
+                                            style={{ width: `${matchAnalysis.matchPercentage}%` }}
+                                        />
+                                    </div>
+
+                                    <div className="bg-muted/30 p-3 rounded-lg text-sm">
+                                        <p className="font-medium text-foreground mb-1">{matchAnalysis.verdict}</p>
+                                        <p className="text-muted-foreground text-xs">{matchAnalysis.reasoning}</p>
+                                    </div>
+
+                                    {matchAnalysis.missingSkills && matchAnalysis.missingSkills.length > 0 && (
+                                        <div>
+                                            <p className="text-xs font-semibold text-muted-foreground mb-2">Missing Skills</p>
+                                            <div className="flex flex-wrap gap-1">
+                                                {matchAnalysis.missingSkills.map((skill: string, i: number) => (
+                                                    <span key={i} className="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100">
+                                                        {skill}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                         {/* Networking Widget */}
                         <div className="bg-white rounded-xl p-6 border border-muted/20 shadow-sm">
                             <div className="flex items-center gap-2 mb-4">
@@ -253,5 +320,54 @@ export default function JobDetailsPage() {
                 </div>
             </div>
         </div>
+        </div >
+
+        {/* Mobile Sticky Action Bar */ }
+        < div className = "fixed bottom-0 left-0 right-0 bg-white border-t border-muted/20 p-4 md:hidden z-40 flex items-center justify-between shadow-lg" >
+            <div>
+                <p className="font-bold text-foreground truncate max-w-[150px]">{job.title}</p>
+                <p className="text-xs text-muted-foreground">{job.company}</p>
+            </div>
+            <button
+                onClick={handleAutoApply}
+                disabled={applying || applyStatus === "success"}
+                className={`px-6 py-2 rounded-lg font-medium text-white flex items-center gap-2 transition-all ${applyStatus === "success" ? "bg-green-600" : "bg-primary hover:bg-primary/90"
+                    }`}
+            >
+                {applying ? "Applying..." : applyStatus === "success" ? "Applied" : "Auto-Apply"}
+            </button>
+        </div >
+
+        {/* Upgrade Modal */ }
+    {
+        showUpgradeModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-2xl animate-in fade-in zoom-in duration-200">
+                    <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Zap className="w-8 h-8 text-yellow-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-foreground mb-2">Daily Limit Reached</h2>
+                    <p className="text-muted-foreground mb-8">
+                        You've used all your free auto-applications for today. Upgrade to Pro to apply to more jobs instantly!
+                    </p>
+                    <div className="flex flex-col gap-3">
+                        <Link
+                            href="/pricing"
+                            className="w-full bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors"
+                        >
+                            Upgrade to Pro
+                        </Link>
+                        <button
+                            onClick={() => setShowUpgradeModal(false)}
+                            className="text-muted-foreground hover:text-foreground text-sm font-medium"
+                        >
+                            Maybe Later
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+        </div >
     );
 }

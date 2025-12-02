@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../database/db');
 const authMiddleware = require('../middleware/auth');
 const ResumeTailoringService = require('../services/ResumeTailoringService');
+const ResumeAnalysisService = require('../services/ResumeAnalysisService');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
@@ -203,6 +204,56 @@ router.post('/tailor', authMiddleware, async (req, res) => {
     } catch (error) {
         console.error('Error tailoring resume:', error);
         res.status(500).json({ error: 'Failed to tailor resume' });
+    }
+});
+
+// POST /api/resumes/analyze/:id - Analyze a resume
+router.post('/analyze/:id', authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.userId || req.user.id;
+
+        // 1. Fetch Resume
+        const result = await db.query('SELECT * FROM resumes WHERE id = ? AND user_id = ?', [id, userId]);
+        const resume = result.rows ? result.rows[0] : result[0];
+
+        if (!resume) {
+            return res.status(404).json({ error: 'Resume not found' });
+        }
+
+        // 2. Extract Text
+        let resumeText = '';
+        if (resume.parsed_data) {
+            const parsed = typeof resume.parsed_data === 'string' ? JSON.parse(resume.parsed_data) : resume.parsed_data;
+            resumeText = parsed.raw_text || '';
+        }
+
+        // Fallback: If no text, try to parse file_data on the fly (if pdf-parse is available)
+        if (!resumeText && resume.file_data) {
+            try {
+                const pdfData = await pdfParse(resume.file_data);
+                resumeText = pdfData.text;
+            } catch (e) {
+                console.warn('Failed to parse PDF on the fly:', e);
+            }
+        }
+
+        if (!resumeText) {
+            return res.status(400).json({ error: 'Could not extract text from resume' });
+        }
+
+        // 3. Analyze
+        console.log(`Analyzing resume ${id} for user ${userId}...`);
+        const analysis = await ResumeAnalysisService.analyzeResume(resumeText);
+
+        res.json({
+            success: true,
+            analysis
+        });
+
+    } catch (error) {
+        console.error('Resume analysis error:', error);
+        res.status(500).json({ error: 'Failed to analyze resume' });
     }
 });
 

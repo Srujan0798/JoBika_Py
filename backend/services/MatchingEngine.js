@@ -1,3 +1,6 @@
+const GeminiService = require('./GeminiService');
+const geminiService = new GeminiService(process.env.GEMINI_API_KEY);
+
 class MatchingEngine {
     constructor() {
         // Weights for the matching algorithm
