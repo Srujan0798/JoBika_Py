@@ -171,7 +171,7 @@ class DatabaseManager {
 
             CREATE TABLE IF NOT EXISTS chat_history (
                 id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL REFERENCES users(id),
+                user_id TEXT NOT NULL REFERENCES users(id),
                 role VARCHAR(50) NOT NULL,
                 message TEXT NOT NULL,
                 folder VARCHAR(100) DEFAULT 'All',
@@ -180,8 +180,8 @@ class DatabaseManager {
             
             CREATE TABLE IF NOT EXISTS saved_jobs (
                 id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL REFERENCES users(id),
-                job_id INTEGER NOT NULL REFERENCES jobs(id),
+                user_id TEXT NOT NULL REFERENCES users(id),
+                job_id TEXT NOT NULL REFERENCES jobs(id),
                 notes TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(user_id, job_id)
@@ -189,7 +189,7 @@ class DatabaseManager {
 
             CREATE TABLE IF NOT EXISTS job_alerts (
                 id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL REFERENCES users(id),
+                user_id TEXT NOT NULL REFERENCES users(id),
                 name VARCHAR(255) NOT NULL,
                 keywords TEXT,
                 locations TEXT,
