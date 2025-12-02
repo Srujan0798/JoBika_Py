@@ -62,7 +62,7 @@ export default function Register() {
                 <div className="text-center">
                     <h2 className="text-3xl font-bold text-foreground">Create Account</h2>
                     <p className="mt-2 text-sm text-muted-foreground">
-                        Join JobSaathi to find your dream job
+                        Join JoBika to find your dream job
                     </p>
                 </div>
 

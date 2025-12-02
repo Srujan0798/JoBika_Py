@@ -15,7 +15,7 @@ export default function Home() {
               J
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-              JobSaathi
+              JoBika
             </span>
           </div>
 
@@ -53,7 +53,7 @@ export default function Home() {
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12">
-              JobSaathi uses advanced AI to match your skills with top Indian companies, tailor your resume, and automate your applications.
+              JoBika uses advanced AI to match your skills with top Indian companies, tailor your resume, and automate your applications.
             </p>
 
             {/* Search Bar */}
@@ -92,7 +92,7 @@ export default function Home() {
         <section className="py-24 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose JobSaathi?</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose JoBika?</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 We've built features specifically for the Indian job market to give you the competitive edge.
               </p>
@@ -140,7 +140,7 @@ export default function Home() {
                   Ready to Land Your Dream Job?
                 </h2>
                 <p className="text-blue-100 text-lg max-w-2xl mx-auto mb-10">
-                  Join 10,000+ job seekers in India who found their perfect role with JobSaathi.
+                  Join 10,000+ job seekers in India who found their perfect role with JoBika.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link href="/register" className="bg-white text-secondary px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-50 transition-colors">
@@ -163,7 +163,7 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-6 h-6 bg-primary rounded flex items-center justify-center text-white font-bold text-sm">J</div>
-                <span className="font-bold text-lg">JobSaathi</span>
+                <span className="font-bold text-lg">JoBika</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Made with ❤️ in India.
@@ -194,7 +194,7 @@ export default function Home() {
             </div>
           </div>
           <div className="text-center text-sm text-muted-foreground pt-8 border-t border-muted/20">
-            © 2024 JobSaathi. All rights reserved.
+            © 2024 JoBika. All rights reserved.
           </div>
         </div>
       </footer>

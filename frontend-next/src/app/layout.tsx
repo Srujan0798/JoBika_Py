@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "JobSaathi - AI Job Platform for India",
+  title: "JoBika - AI Job Platform for India",
   description: "Find your dream job with AI-powered matching, resume building, and career coaching.",
 };
 

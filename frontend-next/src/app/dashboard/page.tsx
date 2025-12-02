@@ -85,7 +85,7 @@ export default function Dashboard() {
                             J
                         </div>
                         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                            JobSaathi
+                            JoBika
                         </span>
                     </div>
 
