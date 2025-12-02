@@ -485,7 +485,7 @@ class DatabaseManager {
             const result = await this.safeQuery(`
                 INSERT INTO users (
                     id, email, password_hash, name, phone, location, 
-                    current_role, current_company, total_years, 
+                    "current_role", current_company, total_years, 
                     current_ctc, expected_ctc, notice_period, 
                     skills, preferences
                 )
