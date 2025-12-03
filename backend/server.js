@@ -54,11 +54,13 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
 // Initialize services
 // db is imported as singleton
+const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyCfUUpFaa5GQ3F45znzykDS-eZNOimfhdg'; // Fallback provided by user
+
 const authService = new AuthService();
-const orionService = new OrionCoachService(process.env.GEMINI_API_KEY);
+const orionService = new OrionCoachService(GEMINI_KEY);
 const jobScraper = new JobScraper();
-const atsService = new ATSService(process.env.GEMINI_API_KEY);
-const resumeTailoring = new ResumeTailoringService(process.env.GEMINI_API_KEY);
+const atsService = new ATSService(GEMINI_KEY);
+const resumeTailoring = new ResumeTailoringService(GEMINI_KEY);
 const autoApply = new ApplicationFormFiller();
 
 // Serve static files
