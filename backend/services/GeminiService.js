@@ -9,7 +9,7 @@ class GeminiService {
         this.apiKey = apiKey;
         console.log('🤖 GeminiService initialized with key:', apiKey ? (apiKey.substring(0, 5) + '...') : 'NULL');
         this.genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
-        this.model = this.genAI ? this.genAI.getGenerativeModel({ model: 'gemini-pro' }) : null;
+        this.model = this.genAI ? this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash-001' }) : null;
     }
 
     /**
@@ -23,10 +23,10 @@ class GeminiService {
         try {
             const chatConfig = systemInstruction
                 ? {
-                    model: 'gemini-pro',
+                    model: 'gemini-1.5-flash-001',
                     systemInstruction: systemInstruction
                 }
-                : { model: 'gemini-pro' };
+                : { model: 'gemini-1.5-flash-001' };
 
             const model = this.genAI.getGenerativeModel(chatConfig);
             const result = await model.generateContent(prompt);
