@@ -94,6 +94,9 @@ app.use((err, req, res, next) => {
 });
 
 
+// ====== TEST ROUTES (Debug only) ======
+app.use('/api/test', require('./routes/testRoutes'));
+
 // ====== JOB ROUTES ======
 app.use('/api/jobs', jobRoutes);
 
