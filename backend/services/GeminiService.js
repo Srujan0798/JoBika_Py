@@ -7,6 +7,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 class GeminiService {
     constructor(apiKey) {
         this.apiKey = apiKey;
+        console.log('🤖 GeminiService initialized with key:', apiKey ? (apiKey.substring(0, 5) + '...') : 'NULL');
         this.genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
         this.model = this.genAI ? this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }) : null;
     }
