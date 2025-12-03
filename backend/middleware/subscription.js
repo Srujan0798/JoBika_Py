@@ -45,7 +45,7 @@ class SubscriptionManager {
 
     static async checkLimit(userId, actionType) {
         const user = await db.query(
-            'SELECT subscription_tier, credits_used_today, credits_reset_at FROM users WHERE id = ?',
+            'SELECT subscription_tier, credits_used_today, credits_reset_at FROM users WHERE id = $1',
             [userId]
         );
 
@@ -62,7 +62,7 @@ class SubscriptionManager {
         const resetTime = new Date(userData.credits_reset_at);
         if (now.toDateString() !== resetTime.toDateString()) {
             await db.query(
-                'UPDATE users SET credits_used_today = 0, credits_reset_at = ? WHERE id = ?',
+                'UPDATE users SET credits_used_today = 0, credits_reset_at = $1 WHERE id = $2',
                 [now, userId]
             );
             userData.credits_used_today = 0;
@@ -121,7 +121,7 @@ class SubscriptionManager {
 
         // Increment usage
         await db.query(
-            'UPDATE users SET credits_used_today = credits_used_today + 1 WHERE id = ?',
+            'UPDATE users SET credits_used_today = credits_used_today + 1 WHERE id = $1',
             [userId]
         );
 
@@ -130,7 +130,7 @@ class SubscriptionManager {
 
     static async hasFeature(userId, featureName) {
         const user = await db.query(
-            'SELECT subscription_tier FROM users WHERE id = ?',
+            'SELECT subscription_tier FROM users WHERE id = $1',
             [userId]
         );
 
@@ -148,7 +148,7 @@ class SubscriptionManager {
 
     static async getUsageStats(userId) {
         const user = await db.query(
-            'SELECT subscription_tier, credits_used_today, credits_reset_at FROM users WHERE id = ?',
+            'SELECT subscription_tier, credits_used_today, credits_reset_at FROM users WHERE id = $1',
             [userId]
         );
 
@@ -174,7 +174,7 @@ class SubscriptionManager {
         }
 
         await db.query(
-            'UPDATE users SET subscription_tier = ?, subscription_expires_at = ? WHERE id = ?',
+            'UPDATE users SET subscription_tier = $1, subscription_expires_at = $2 WHERE id = $3',
             [newTier, expiresAt, userId]
         );
 
@@ -183,7 +183,7 @@ class SubscriptionManager {
 
     static async checkExpiration(userId) {
         const user = await db.query(
-            'SELECT subscription_tier, subscription_expires_at FROM users WHERE id = ?',
+            'SELECT subscription_tier, subscription_expires_at FROM users WHERE id = $1',
             [userId]
         );
 
@@ -200,7 +200,7 @@ class SubscriptionManager {
             if (now > expiresAt) {
                 // Downgrade to free
                 await db.query(
-                    'UPDATE users SET subscription_tier = ?, subscription_expires_at = NULL WHERE id = ?',
+                    'UPDATE users SET subscription_tier = $1, subscription_expires_at = NULL WHERE id = $2',
                     ['free', userId]
                 );
 
