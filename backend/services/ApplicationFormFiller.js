@@ -83,7 +83,9 @@ class ApplicationFormFiller {
             console.error('Auto-apply error:', error);
 
             // MOCK FALLBACK for environments without Chrome
-            if (error.message.includes('Could not find Chrome') || error.message.includes('launch')) {
+            if (error.message.includes('Could not find Chrome') ||
+                error.message.includes('launch') ||
+                error.message.includes('no executable was found')) {
                 console.warn('⚠️ Puppeteer launch failed. Using MOCK FALLBACK for demo purposes.');
 
                 // Simulate delay
