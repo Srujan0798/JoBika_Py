@@ -125,6 +125,22 @@ router.post('/migrate', async (req, res) => {
             console.log('Error adding created_at to applications (might exist):', e.message);
         }
 
+        // Add credits_used_today to users
+        try {
+            await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS credits_used_today INTEGER DEFAULT 0');
+            console.log('Added credits_used_today to users');
+        } catch (e) {
+            console.log('Error adding credits_used_today to users:', e.message);
+        }
+
+        // Add credits_reset_at to users
+        try {
+            await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS credits_reset_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
+            console.log('Added credits_reset_at to users');
+        } catch (e) {
+            console.log('Error adding credits_reset_at to users:', e.message);
+        }
+
         res.json({ success: true, message: 'Migrations completed' });
     } catch (error) {
         console.error('Migration error:', error);
