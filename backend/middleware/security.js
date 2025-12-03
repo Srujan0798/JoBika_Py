@@ -49,7 +49,7 @@ const authLimiter = rateLimit({
 const corsOptions = () => {
     const allowedOrigins = process.env.ALLOWED_ORIGINS
         ? process.env.ALLOWED_ORIGINS.split(',')
-        : ['http://localhost:3000', 'http://localhost:3001', process.env.FRONTEND_URL || '*'];
+        : ['http://localhost:3000', 'http://localhost:3001', 'https://jobika-pyt.vercel.app', process.env.FRONTEND_URL || '*'];
 
     return {
         origin: (origin, callback) => {
