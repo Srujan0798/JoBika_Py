@@ -96,4 +96,32 @@ router.get('/test-count-jobs', async (req, res) => {
     }
 });
 
+// POST /api/test/migrate - Run schema migrations
+router.post('/migrate', async (req, res) => {
+    try {
+        console.log('Running migrations...');
+
+        // Add file_data to resumes
+        try {
+            await db.query('ALTER TABLE resumes ADD COLUMN IF NOT EXISTS file_data BYTEA');
+            console.log('Added file_data to resumes');
+        } catch (e) {
+            console.log('Error adding file_data to resumes (might exist):', e.message);
+        }
+
+        // Add file_data to resume_versions
+        try {
+            await db.query('ALTER TABLE resume_versions ADD COLUMN IF NOT EXISTS file_data BYTEA');
+            console.log('Added file_data to resume_versions');
+        } catch (e) {
+            console.log('Error adding file_data to resume_versions (might exist):', e.message);
+        }
+
+        res.json({ success: true, message: 'Migrations completed' });
+    } catch (error) {
+        console.error('Migration error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
