@@ -34,7 +34,7 @@ class GeminiService {
             return response.text();
         } catch (error) {
             console.error('Gemini API error:', error);
-            throw new Error(`AI request failed: ${error.message}`);
+            throw new Error(`AI request failed: ${error.message} (Key: ${this.apiKey ? 'Present' : 'Missing'})`);
         }
     }
 
