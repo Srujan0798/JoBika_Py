@@ -18,24 +18,30 @@ router.get('/', async (req, res) => {
             return res.json(cachedJobs);
         }
 
-        let query = 'SELECT * FROM jobs WHERE is_active = 1';
-        const params = [];
+        let query = 'SELECT * FROM jobs WHERE is_active = $1';
+        const params = [1]; // is_active = 1 (true)
+        let paramIndex = 2;
 
         if (q) {
-            query += ` AND (title LIKE ? OR company LIKE ? OR skills_required LIKE ?)`;
+            query += ` AND (title ILIKE $${paramIndex} OR company ILIKE $${paramIndex + 1} OR skills_required ILIKE $${paramIndex + 2})`;
             const term = `%${q}%`;
             params.push(term, term, term);
+            paramIndex += 3;
         }
 
         if (location) {
-            query += ` AND location LIKE ?`;
+            query += ` AND location ILIKE $${paramIndex}`;
             params.push(`%${location}%`);
+            paramIndex++;
         }
 
         query += ' ORDER BY posted_date DESC LIMIT 50';
 
+        console.log('Executing query:', query, 'with params:', params);
         const result = await db.query(query, params);
         let jobs = result.rows || result;
+
+        console.log(`Found ${jobs.length} jobs`);
 
         // Cache the raw result before personalization
         cache.set(cacheKey, jobs);

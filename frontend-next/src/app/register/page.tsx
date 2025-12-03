@@ -20,11 +20,45 @@ export default function Register() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [passwordError, setPasswordError] = useState("");
+
+    const validatePassword = (password: string) => {
+        if (password.length < 8) {
+            return "Password must be at least 8 characters";
+        }
+        if (!/[A-Z]/.test(password)) {
+            return "Password must contain at least one uppercase letter";
+        }
+        if (!/[a-z]/.test(password)) {
+            return "Password must contain at least one lowercase letter";
+        }
+        if (!/[0-9]/.test(password)) {
+            return "Password must contain at least one number";
+        }
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+            return "Password must contain at least one special character";
+        }
+        return "";
+    };
+
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newPassword = e.target.value;
+        setFormData({ ...formData, password: newPassword });
+        setPasswordError(validatePassword(newPassword));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError("");
+
+        // Validate password before submission
+        const pwdError = validatePassword(formData.password);
+        if (pwdError) {
+            setError(pwdError);
+            setLoading(false);
+            return;
+        }
 
         try {
             // Convert skills string to array
@@ -102,9 +136,10 @@ export default function Register() {
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     required
-                                    className="mt-1 block w-full px-3 py-2 border border-muted rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                                    className={`mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary ${passwordError ? 'border-red-500' : 'border-muted'
+                                        }`}
                                     value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    onChange={handlePasswordChange}
                                 />
                                 <button
                                     type="button"
@@ -114,6 +149,12 @@ export default function Register() {
                                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                 </button>
                             </div>
+                            {passwordError && (
+                                <p className="mt-1 text-xs text-red-500">{passwordError}</p>
+                            )}
+                            {!passwordError && formData.password && (
+                                <p className="mt-1 text-xs text-green-600">✓ Password is strong</p>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">

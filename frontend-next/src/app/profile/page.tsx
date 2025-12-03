@@ -49,25 +49,28 @@ export default function ProfilePage() {
                 return;
             }
 
-            // We don't have a direct GET /profile, so we use the stored user data or fetch from a new endpoint
-            // Ideally backend should have GET /api/user/profile. Let's assume we need to add it or rely on local storage for basic info
-            // and maybe fetch more. For now, let's try to fetch from a hypothetical GET /api/user/profile or just use what we have.
-            // Actually, let's implement GET /api/user/profile in backend if it doesn't exist.
-            // Checking user.js... it has PUT /profile but not GET /profile explicitly shown in previous turns.
-            // Let's try to fetch.
             const res = await fetch(`${API_BASE_URL}/api/user/profile`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             if (res.ok) {
                 const data = await res.json();
+                console.log("Profile data received:", data);
+
+                // Parse JSON fields and set profile
                 setProfile({
-                    ...data,
-                    skills: typeof data.skills === 'string' ? JSON.parse(data.skills) : data.skills || [],
-                    preferences: typeof data.preferences === 'string' ? JSON.parse(data.preferences) : data.preferences || { locations: [], roles: [], remote: false }
+                    name: data.name || "",
+                    email: data.email || "",
+                    phone: data.phone || "",
+                    location: data.location || "",
+                    current_role: data.current_role || "",
+                    current_company: data.current_company || "",
+                    total_years: data.total_years || 0,
+                    skills: typeof data.skills === 'string' ? JSON.parse(data.skills || '[]') : (data.skills || []),
+                    preferences: typeof data.preferences === 'string' ? JSON.parse(data.preferences || '{"locations":[],"roles":[],"remote":false}') : (data.preferences || { locations: [], roles: [], remote: false })
                 });
             } else {
-                // Fallback to local storage if API fails (or not implemented)
+                // Fallback to local storage if API fails
                 const stored = localStorage.getItem("user");
                 if (stored) {
                     const parsed = JSON.parse(stored);
@@ -76,6 +79,16 @@ export default function ProfilePage() {
             }
         } catch (error) {
             console.error("Failed to fetch profile:", error);
+            // Try local storage fallback
+            const stored = localStorage.getItem("user");
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    setProfile(prev => ({ ...prev, ...parsed }));
+                } catch (e) {
+                    console.error("Failed to parse stored user:", e);
+                }
+            }
         } finally {
             setLoading(false);
         }
