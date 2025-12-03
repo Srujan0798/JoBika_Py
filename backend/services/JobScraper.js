@@ -74,7 +74,7 @@ class JobScraper {
 
                 // Check if job exists (by URL or Title+Company)
                 const existing = await db.query(
-                    'SELECT id FROM jobs WHERE external_link = ? OR (title = ? AND company = ?)',
+                    'SELECT id FROM jobs WHERE external_link = $1 OR (title = $2 AND company = $3)',
                     [job.url, job.title, job.company]
                 );
 
@@ -88,7 +88,7 @@ class JobScraper {
                         external_link, experience_min, experience_max,
                         salary_min, salary_max, skills_required, posted_date,
                         description, is_active
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
                 `, [
                     id,
                     job.title,
@@ -102,7 +102,8 @@ class JobScraper {
                     salary.max,
                     JSON.stringify(job.skills || []),
                     new Date().toISOString(),
-                    job.description || `Job opportunity at ${job.company}`
+                    job.description || `Job opportunity at ${job.company}`,
+                    1 // is_active
                 ]);
 
                 savedCount++;
