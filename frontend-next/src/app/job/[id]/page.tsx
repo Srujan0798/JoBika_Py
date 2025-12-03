@@ -339,25 +339,25 @@ export default function JobDetailsPage() {
                 </div>
             </div>
         </div>
-        </div >
+
 
         {/* Mobile Sticky Action Bar */ }
-        < div className = "fixed bottom-0 left-0 right-0 bg-white border-t border-muted/20 p-4 md:hidden z-40 flex items-center justify-between shadow-lg" >
-            <div>
-                <p className="font-bold text-foreground truncate max-w-[150px]">{job.title}</p>
-                <p className="text-xs text-muted-foreground">{job.company}</p>
-            </div>
-            <button
-                onClick={handleAutoApply}
-                disabled={applying || applyStatus === "success"}
-                className={`px-6 py-2 rounded-lg font-medium text-white flex items-center gap-2 transition-all ${applyStatus === "success" ? "bg-green-600" : "bg-primary hover:bg-primary/90"
-                    }`}
-            >
-                {applying ? "Applying..." : applyStatus === "success" ? "Applied" : "Auto-Apply"}
-            </button>
-        </div >
+    < div className="fixed bottom-0 left-0 right-0 bg-white border-t border-muted/20 p-4 md:hidden z-40 flex items-center justify-between shadow-lg" >
+        <div>
+            <p className="font-bold text-foreground truncate max-w-[150px]">{job.title}</p>
+            <p className="text-xs text-muted-foreground">{job.company}</p>
+        </div>
+        <button
+            onClick={handleAutoApply}
+            disabled={applying || applyStatus === "success"}
+            className={`px-6 py-2 rounded-lg font-medium text-white flex items-center gap-2 transition-all ${applyStatus === "success" ? "bg-green-600" : "bg-primary hover:bg-primary/90"
+                }`}
+        >
+            {applying ? "Applying..." : applyStatus === "success" ? "Applied" : "Auto-Apply"}
+        </button>
+    </div >
 
-        {/* Upgrade Modal */ }
+    {/* Upgrade Modal */ }
     {
         showUpgradeModal && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
