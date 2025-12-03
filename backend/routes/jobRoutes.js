@@ -120,7 +120,7 @@ router.get('/:id', async (req, res) => {
             return res.json(cachedJob);
         }
 
-        const result = await db.query('SELECT * FROM jobs WHERE id = ?', [req.params.id]);
+        const result = await db.query('SELECT * FROM jobs WHERE id = $1', [req.params.id]);
         const job = result.rows ? result.rows[0] : result[0];
 
         if (!job) {

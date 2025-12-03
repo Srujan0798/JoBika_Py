@@ -59,6 +59,21 @@ router.put('/user/profile', async (req, res) => {
             values.push(location);
             paramIndex++;
         }
+        if (req.body.current_role) {
+            updates.push(`current_role = $${paramIndex}`);
+            values.push(req.body.current_role);
+            paramIndex++;
+        }
+        if (req.body.current_company) {
+            updates.push(`current_company = $${paramIndex}`);
+            values.push(req.body.current_company);
+            paramIndex++;
+        }
+        if (req.body.total_years !== undefined) {
+            updates.push(`total_years = $${paramIndex}`);
+            values.push(req.body.total_years);
+            paramIndex++;
+        }
 
         if (updates.length === 0) {
             return res.json({ success: true, message: 'No changes provided' });
