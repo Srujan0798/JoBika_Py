@@ -136,10 +136,10 @@ app.post('/api/orion/chat', authMiddleware, validate(chatMessageSchema), async (
         await SubscriptionManager.trackUsage(req.userId, 'chat');
 
         // Save user message
-        db.saveChatMessage(req.userId, 'user', message, folder || 'All');
+        await db.saveChatMessage(req.userId, 'user', message, folder || 'All');
 
         // Get chat history for context
-        const history = db.getChatHistory(req.userId, folder, 10);
+        const history = await db.getChatHistory(req.userId, folder, 10);
 
         // Get AI response
         const response = await orionService.chatWithOrion(message, history);
