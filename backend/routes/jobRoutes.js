@@ -132,4 +132,17 @@ router.post('/match', async (req, res) => {
     }
 });
 
+// POST /api/jobs/scrape - Trigger scraper (Admin/Dev only)
+router.post('/scrape', async (req, res) => {
+    try {
+        const JobScraper = require('../services/JobScraper');
+        const scraper = new JobScraper();
+        const count = await scraper.run();
+        res.json({ success: true, message: `Scraped/Generated ${count} jobs` });
+    } catch (error) {
+        console.error('Scrape error:', error);
+        res.status(500).json({ error: 'Scrape failed' });
+    }
+});
+
 module.exports = router;
