@@ -9,6 +9,25 @@ const fs = require('fs');
 // Initialize service
 const formFiller = new ApplicationFormFiller();
 
+// GET /api/applications - List user applications
+router.get('/', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.userId || req.user.id;
+        const result = await db.query(`
+            SELECT a.*, j.title as job_title, j.company, j.location
+            FROM applications a
+            JOIN jobs j ON a.job_id = j.id
+            WHERE a.user_id = $1
+            ORDER BY a.created_at DESC
+        `, [userId]);
+
+        res.json(result.rows || result);
+    } catch (error) {
+        console.error('Error fetching applications:', error);
+        res.status(500).json({ error: 'Failed to fetch applications' });
+    }
+});
+
 // POST /api/applications/auto-apply - Auto-apply to a job
 router.post('/auto-apply', authMiddleware, async (req, res) => {
     try {
