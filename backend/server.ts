@@ -98,34 +98,34 @@ app.use((err, req, res, next) => {
 
 
 // ====== TEST ROUTES (Debug only) ======
-app.use('/api/test', import from './routes/testRoutes'));
+app.use('/api/test', require('./routes/testRoutes'));
 
 // ====== CACHE ROUTES (Debug only) ======
-app.use('/api/cache', import from './routes/cacheRoutes'));
+app.use('/api/cache', require('./routes/cacheRoutes'));
 
 // ====== JOB ROUTES ======
 app.use('/api/jobs', jobRoutes);
 
 // ====== AUTH ROUTES ======
-app.use('/api/auth', import from './routes/auth'));
+app.use('/api/auth', authRoutes);
 
 // ====== USER ROUTES ======
-app.use('/api', authMiddleware, import from './routes/user'));
+app.use('/api', authMiddleware, userRoutes);
 
 // ====== RESUME ROUTES ======
-app.use('/api/resumes', import from './routes/resumes'));
+app.use('/api/resumes', require('./routes/resumes'));
 
 // ====== APPLICATION ROUTES ======
-app.use('/api/applications', import from './routes/applications'));
+app.use('/api/applications', require('./routes/applications'));
 
 // ====== ANALYTICS ROUTES ======
-app.use('/api/analytics', import from './routes/analytics'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 // ====== NETWORKING ROUTES ======
-app.use('/api/networking', import from './routes/networking'));
+app.use('/api/networking', require('./routes/networking'));
 
 // ====== PAYMENTS ROUTES ======
-app.use('/api/payments', import from './routes/payments'));
+app.use('/api/payments', require('./routes/payments'));
 
 // ====== ORION AI CHAT ROUTES ======
 
