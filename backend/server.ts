@@ -32,38 +32,11 @@ import logger from './utils/Logger';
 import { dbCircuitBreaker, apiRetry, gracefulDegradation } from './utils/resiliencePatterns';
 import { validate, validateQuery, jobSearchSchema, chatMessageSchema, alertSchema, autoApplyRequestSchema, tailorResumeSchema } from './middleware/validation';
 import { SubscriptionManager } from './middleware/subscription';
-import dns from 'dns';
+
 // Force IPv4 for Supabase connectivity
 dns.setDefaultResultOrder('ipv4first');
 
-import dotenv from 'dotenv'; dotenv.config({ path: '../.env' });
-// Trigger CI/CD
-import express from 'express';
-import cors from 'cors';
-import bodyParser from 'body-parser';
-
-// Import routes
-import authRoutes from './routes/auth');
-import userRoutes from './routes/user');
-import jobRoutes from './routes/jobRoutes');
-
-// Import utilities
-import errorHandler from './utils/errorHandler');
-import security from './middleware/security');
-import authMiddleware from './middleware/auth');
-
-// Import services
-import db from './database/db');
-// AuthService imported later as TypeScript
-import OrionCoachService from './services/OrionCoachService');
-import JobScraper from './services/JobScraper');
-import ATSService from './services/ATSService');
-import ResumeTailoringService from './services/ResumeTailoringService');
-import ApplicationFormFiller from './services/ApplicationFormFiller');
-import EmailService from './services/EmailService');
-import cache from './utils/CacheService');
-import logger from './utils/Logger');
-import morgan from 'morgan';
+dotenv.config({ path: '../.env' });
 
 const app = express();
 // Enable trust proxy for Railway/Vercel
@@ -87,11 +60,7 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
 // Initialize services
-// db is imported as singleton
-const GEMINI_KEY = process.env.GEMINI_API_KEY; // Fallback provided by user
-
-// Import TypeScript AuthService (ts-node-dev handles .ts files)
-import AuthService from './services/AuthService.ts').default;
+const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const authService = new AuthService();
 const orionService = new OrionCoachService(GEMINI_KEY);
 const jobScraper = new JobScraper();
@@ -101,10 +70,6 @@ const autoApply = new ApplicationFormFiller();
 
 // Serve static files
 app.use(express.static('../app'));
-
-// Import resilience patterns
-import { dbCircuitBreaker, apiRetry, gracefulDegradation } from './utils/resiliencePatterns');
-import { validate, validateQuery, jobSearchSchema, chatMessageSchema, alertSchema, autoApplyRequestSchema, tailorResumeSchema } from './middleware/validation');
 
 // Register graceful degradation fallbacks
 gracefulDegradation.registerFallback('jobs', async () => {
