@@ -1,4 +1,4 @@
-FROM node:18-slim
+FROM node:20-slim
 
 # Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
 # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
@@ -24,10 +24,10 @@ COPY package*.json ./
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 
-RUN npm install
+RUN npm ci && npx prisma generate
 
 # Bundle app source
 COPY . .
 
 EXPOSE 5000
-CMD [ "node", "server.js" ]
+CMD [ "npm", "start" ]
