@@ -1,0 +1,197 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                String   @id @default(uuid())
+  email             String   @unique
+  passwordHash      String?  @map("password_hash")
+  name              String?
+  phone             String?
+  location          String?
+  currentRole       String?  @map("current_role")
+  currentCompany    String?  @map("current_company")
+  totalYears        Float?   @map("total_years")
+  currentCtc        Float?   @map("current_ctc")
+  expectedCtc       Float?   @map("expected_ctc")
+  noticePeriod      Int?     @map("notice_period")
+  skills            String?  // JSON string
+  preferences       String?  // JSON string
+  subscriptionTier  String   @default("free") @map("subscription_tier")
+  credits           Int      @default(10)
+  creditsUsedToday  Int?     @default(0) @map("credits_used_today")
+  creditsResetAt    DateTime? @default(now()) @map("credits_reset_at")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  resumes          Resume[]
+  applications     Application[]
+  jobMatches       JobMatch[]
+  resumeVersions   ResumeVersion[]
+  chatHistory      ChatHistory[]
+  savedJobs        SavedJob[]
+  jobAlerts        JobAlert[]
+
+  @@map("users")
+}
+
+model Job {
+  id             String    @id @default(uuid())
+  title          String
+  company        String
+  description    String?
+  location       String?
+  salaryMin      Float?    @map("salary_min")
+  salaryMax      Float?    @map("salary_max")
+  experienceMin  Float?    @map("experience_min")
+  experienceMax  Float?    @map("experience_max")
+  skillsRequired String?   @map("skills_required") // JSON string
+  source         String?
+  externalLink   String?   @map("external_link")
+  postedDate     DateTime? @map("posted_date")
+  isActive       Int       @default(1) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  applications   Application[]
+  jobMatches     JobMatch[]
+  resumeVersions ResumeVersion[]
+  savedJobs      SavedJob[]
+
+  @@index([isActive], name: "idx_jobs_is_active")
+  @@index([company], name: "idx_jobs_company")
+  @@index([location], name: "idx_jobs_location")
+  @@map("jobs")
+}
+
+model Resume {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  originalUrl String?  @map("original_url")
+  fileData    Bytes?   @map("file_data")
+  parsedData  String?  @map("parsed_data")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_resumes_user_id")
+  @@map("resumes")
+}
+
+model JobMatch {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  jobId      String   @map("job_id")
+  matchScore Int      @map("match_score")
+  reasons    String?
+  isViewed   Int      @default(0) @map("is_viewed")
+  isSaved    Int      @default(0) @map("is_saved")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@index([userId], name: "idx_job_matches_user_id")
+  @@index([matchScore], name: "idx_job_matches_score")
+  @@map("job_matches")
+}
+
+model Application {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  jobId           String   @map("job_id")
+  status          String   @default("applied")
+  resumeVersionId String?  @map("resume_version_id")
+  coverLetter     String?  @map("cover_letter")
+  notes           String?
+  appliedDate     DateTime @default(now()) @map("applied_date")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_applications_user_id")
+  @@index([status], name: "idx_applications_status")
+  @@map("applications")
+}
+
+model ResumeVersion {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  jobId     String   @map("job_id")
+  content   String?
+  pdfUrl    String?  @map("pdf_url")
+  fileData  Bytes?   @map("file_data")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_resume_versions_user_id")
+  @@index([jobId], name: "idx_resume_versions_job_id")
+  @@map("resume_versions")
+}
+
+model ChatHistory {
+  id        Int      @id @default(autoincrement())
+  userId    String   @map("user_id")
+  role      String   @db.VarChar(50)
+  message   String
+  folder    String   @default("All") @db.VarChar(100)
+  timestamp DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_chat_user_id")
+  @@map("chat_history")
+}
+
+model SavedJob {
+  id        Int      @id @default(autoincrement())
+  userId    String   @map("user_id")
+  jobId     String   @map("job_id")
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@index([userId], name: "idx_saved_jobs_user_id")
+  @@map("saved_jobs")
+}
+
+model JobAlert {
+  id            Int      @id @default(autoincrement())
+  userId        String   @map("user_id")
+  name          String   @db.VarChar(255)
+  keywords      String?
+  locations     String?
+  jobTypes      String?  @map("job_types")
+  experienceMin Int?     @map("experience_min")
+  experienceMax Int?     @map("experience_max")
+  salaryMin     Decimal? @map("salary_min") @db.Decimal(10, 2)
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_job_alerts_user_id")
+  @@map("job_alerts")
+}
